@@ -1,0 +1,292 @@
+package runtime
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"io"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/open-policy-agent/opa/ast"
+	"github.com/open-policy-agent/opa/bundle"
+	"github.com/open-policy-agent/opa/compile"
+	"github.com/open-policy-agent/opa/rego"
+	"github.com/open-policy-agent/opa/topdown"
+	"github.com/open-policy-agent/opa/types"
+	"github.com/pkg/errors"
+)
+
+// BuildTargetType represents the type of build target
+type BuildTargetType int
+
+const (
+	Rego BuildTargetType = iota
+	Wasm
+)
+
+type fakeBuiltin struct {
+	Name string         `json:"name"`
+	Decl types.Function `json:"decl"`
+}
+
+type fakeBuiltin1 fakeBuiltin
+type fakeBuiltin2 fakeBuiltin
+type fakeBuiltin3 fakeBuiltin
+type fakeBuiltin4 fakeBuiltin
+type fakeBuiltinDyn fakeBuiltin
+
+type fakeBuiltinDefs struct {
+	Builtin1   []fakeBuiltin1   `json:"builtin1,omitempty"`
+	Builtin2   []fakeBuiltin2   `json:"builtin2,omitempty"`
+	Builtin3   []fakeBuiltin3   `json:"builtin3,omitempty"`
+	Builtin4   []fakeBuiltin4   `json:"builtin4,omitempty"`
+	BuiltinDyn []fakeBuiltinDyn `json:"builtinDyn,omitempty"`
+}
+
+func (t BuildTargetType) String() string {
+	return buildTargetTypeToString[t]
+}
+
+var buildTargetTypeToString = map[BuildTargetType]string{
+	Rego: "rego",
+	Wasm: "wasm",
+}
+
+// BuildParams contains all parameters used for doing a build
+type BuildParams struct {
+	CapabilitiesJsonFile string
+	Target               BuildTargetType
+	OptimizationLevel    int
+	Entrypoints          []string
+	OutputFile           string
+	Revision             string
+	Ignore               []string
+	Debug                bool
+	Algorithm            string
+	Key                  string
+	Scope                string
+	PubKey               string
+	PubKeyID             string
+	ClaimsFile           string
+	ExcludeVerifyFiles   []string
+}
+
+// Build builds a bundle using the Aserto OPA Runtime
+func (r *Runtime) Build(params BuildParams, paths []string) error {
+	buf := bytes.NewBuffer(nil)
+
+	err := r.generateAllFakeBuiltins(paths)
+	if err != nil {
+		return err
+	}
+
+	// generate the bundle verification and signing config
+	bvc, err := buildVerificationConfig(params.PubKey, params.PubKeyID, params.Algorithm, params.Scope, params.ExcludeVerifyFiles)
+	if err != nil {
+		return err
+	}
+
+	bsc := buildSigningConfig(params.Key, params.Algorithm, params.ClaimsFile)
+
+	var capabilities *ast.Capabilities
+	// if capabilities are not provided then ast.CapabilitiesForThisVersion must be used
+	if params.CapabilitiesJsonFile == "" {
+		capabilities = ast.CapabilitiesForThisVersion()
+	} else {
+		capabilitiesJSON, err := os.ReadFile(params.CapabilitiesJsonFile)
+		if err != nil {
+			return errors.Wrapf(err, "couldn't read capabilities JSON file [%s]", params.CapabilitiesJsonFile)
+		}
+		capabilities, err = ast.LoadCapabilitiesJSON(bytes.NewBufferString(string(capabilitiesJSON)))
+		if err != nil {
+			return errors.Wrapf(err, "failed to load capabilities file [%s]", params.CapabilitiesJsonFile)
+		}
+	}
+
+	compiler := compile.New().
+		WithCapabilities(capabilities).
+		WithTarget(params.Target.String()).
+		WithAsBundle(true).
+		WithOptimizationLevel(params.OptimizationLevel).
+		WithOutput(buf).
+		WithEntrypoints(params.Entrypoints...).
+		WithPaths(paths...).
+		WithFilter(buildCommandLoaderFilter(true, params.Ignore)).
+		WithRevision(params.Revision).
+		WithBundleVerificationConfig(bvc).
+		WithBundleSigningConfig(bsc)
+
+	if params.ClaimsFile == "" {
+		compiler = compiler.WithBundleVerificationKeyID(params.PubKeyID)
+	}
+
+	err = compiler.Build(context.Background())
+	if err != nil {
+		return err
+	}
+
+	out, err := os.Create(params.OutputFile)
+	if err != nil {
+		return err
+	}
+
+	_, err = io.Copy(out, buf)
+	if err != nil {
+		return err
+	}
+
+	return out.Close()
+}
+
+func buildCommandLoaderFilter(bundleMode bool, ignore []string) func(string, os.FileInfo, int) bool {
+	return func(abspath string, info os.FileInfo, depth int) bool {
+		if !bundleMode {
+			if !info.IsDir() && strings.HasSuffix(abspath, ".tar.gz") {
+				return true
+			}
+		}
+		return loaderFilter{Ignore: ignore}.Apply(abspath, info, depth)
+	}
+}
+
+func buildVerificationConfig(pubKey, pubKeyID, alg, scope string, excludeFiles []string) (*bundle.VerificationConfig, error) {
+	if pubKey == "" {
+		return nil, nil
+	}
+
+	keyConfig := &bundle.KeyConfig{
+		Key:       pubKey,
+		Algorithm: alg,
+		Scope:     scope,
+	}
+
+	return bundle.NewVerificationConfig(map[string]*bundle.KeyConfig{pubKeyID: keyConfig}, pubKeyID, scope, excludeFiles), nil
+}
+
+func buildSigningConfig(key, alg, claimsFile string) *bundle.SigningConfig {
+	if key == "" {
+		return nil
+	}
+
+	return bundle.NewSigningConfig(key, alg, claimsFile)
+}
+
+func (r *Runtime) registerFakeBuiltins(defs *fakeBuiltinDefs) {
+	for _, b := range defs.Builtin1 {
+		if topdown.GetBuiltin(b.Name) != nil {
+			r.Logger.Info().Str("builtin", b.Name).Msg("Builtin already declared, skipping fake declaration.")
+		}
+
+		rego.RegisterBuiltin1(&rego.Function{
+			Name:    b.Name,
+			Memoize: false,
+			Decl:    &b.Decl,
+		}, func(rego.BuiltinContext, *ast.Term) (*ast.Term, error) {
+			return nil, nil
+		})
+	}
+
+	for _, b := range defs.Builtin2 {
+		if topdown.GetBuiltin(b.Name) != nil {
+			r.Logger.Info().Str("builtin", b.Name).Msg("Builtin already declared, skipping fake declaration.")
+		}
+
+		rego.RegisterBuiltin2(&rego.Function{
+			Name:    b.Name,
+			Memoize: false,
+			Decl:    &b.Decl,
+		}, func(bctx rego.BuiltinContext, op1, op2 *ast.Term) (*ast.Term, error) {
+			return nil, nil
+		})
+	}
+
+	for _, b := range defs.Builtin3 {
+		if topdown.GetBuiltin(b.Name) != nil {
+			r.Logger.Info().Str("builtin", b.Name).Msg("Builtin already declared, skipping fake declaration.")
+		}
+
+		rego.RegisterBuiltin3(&rego.Function{
+			Name:    b.Name,
+			Memoize: false,
+			Decl:    &b.Decl,
+		}, func(bctx rego.BuiltinContext, op1, op2, op3 *ast.Term) (*ast.Term, error) {
+			return nil, nil
+		})
+	}
+
+	for _, b := range defs.Builtin4 {
+		if topdown.GetBuiltin(b.Name) != nil {
+			r.Logger.Info().Str("builtin", b.Name).Msg("Builtin already declared, skipping fake declaration.")
+		}
+
+		rego.RegisterBuiltin4(&rego.Function{
+			Name:    b.Name,
+			Memoize: false,
+			Decl:    &b.Decl,
+		}, func(bctx rego.BuiltinContext, op1, op2, op3, op4 *ast.Term) (*ast.Term, error) {
+			return nil, nil
+		})
+	}
+
+	for _, b := range defs.BuiltinDyn {
+		if topdown.GetBuiltin(b.Name) != nil {
+			r.Logger.Info().Str("builtin", b.Name).Msg("Builtin already declared, skipping fake declaration.")
+		}
+
+		rego.RegisterBuiltinDyn(&rego.Function{
+			Name:    b.Name,
+			Memoize: false,
+			Decl:    &b.Decl,
+		}, func(bctx rego.BuiltinContext, terms []*ast.Term) (*ast.Term, error) {
+			return nil, nil
+		})
+	}
+}
+
+func fileExists(path string) (bool, error) {
+	if _, err := os.Stat(path); err == nil {
+		return true, nil
+	} else if os.IsNotExist(err) {
+		return false, nil
+	} else {
+		return false, errors.Wrapf(err, "failed to stat file '%s'", path)
+	}
+
+}
+
+func (r *Runtime) generateAllFakeBuiltins(paths []string) error {
+	for _, path := range paths {
+		manifestPath := filepath.Join(path, ".manifest")
+		manifestExists, err := fileExists(manifestPath)
+		if err != nil {
+			return errors.Wrapf(err, "failed to determine if file [%s] exists", manifestPath)
+		}
+
+		if !manifestExists {
+			continue
+		}
+
+		manifestBytes, err := os.ReadFile(manifestPath)
+		if err != nil {
+			return errors.Wrapf(err, "failed to read manifest [%s]", manifestPath)
+		}
+
+		manifest := struct {
+			Metadata struct {
+				RequiredBuiltins *fakeBuiltinDefs `json:"required_builtins"`
+			} `json:"metadata,omitempty"`
+		}{}
+		err = json.Unmarshal(manifestBytes, &manifest)
+		if err != nil {
+			return errors.Wrapf(err, "failed to unmarshal json from manifest [%s]", manifestPath)
+		}
+
+		if manifest.Metadata.RequiredBuiltins != nil {
+			r.registerFakeBuiltins(manifest.Metadata.RequiredBuiltins)
+		}
+	}
+
+	return nil
+}
