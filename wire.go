@@ -1,9 +1,11 @@
-//+build wireinject
+//go:build wireinject
+// +build wireinject
 
 package runtime
 
 import (
 	"context"
+
 	"github.com/google/wire"
 	"github.com/rs/zerolog"
 )
