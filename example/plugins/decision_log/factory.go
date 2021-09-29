@@ -3,6 +3,7 @@ package decision_log
 import (
 	"bytes"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/open-policy-agent/opa/plugins"
 	"github.com/open-policy-agent/opa/util"
 	"github.com/pkg/errors"
@@ -28,7 +29,9 @@ func (PluginFactory) Validate(m *plugins.Manager, config []byte) (interface{}, e
 	if err != nil {
 		return nil, errors.Wrap(err, "error parsing decision logs config")
 	}
-	err = v.UnmarshalExact(&parsedConfig)
+	err = v.UnmarshalExact(&parsedConfig, func(dc *mapstructure.DecoderConfig) {
+		dc.TagName = "json"
+	})
 	if err != nil {
 		return nil, errors.Wrap(err, "error parsing decision logs config")
 	}
