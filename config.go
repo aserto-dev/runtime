@@ -13,12 +13,12 @@ import (
 )
 
 type Config struct {
-	LocalBundles                  LocalBundlesConfig `mapstructure:"local_bundles"`
-	InstanceID                    string             `mapstructure:"instance_id"`
-	PluginsErrorLimit             int                `mapstructure:"plugins_error_limit"`
-	GracefulShutdownPeriodSeconds int                `mapstructure:"graceful_shutdown_period_seconds"`
-	Store                         string             `mapstructure:"store"`
-	Config                        OPAConfig          `mapstructure:"config"`
+	LocalBundles                  LocalBundlesConfig `json:"local_bundles"`
+	InstanceID                    string             `json:"instance_id"`
+	PluginsErrorLimit             int                `json:"plugins_error_limit"`
+	GracefulShutdownPeriodSeconds int                `json:"graceful_shutdown_period_seconds"`
+	Store                         string             `json:"store"`
+	Config                        OPAConfig          `json:"config"`
 }
 
 func (c *Config) rawOPAConfig() ([]byte, error) {
@@ -26,11 +26,11 @@ func (c *Config) rawOPAConfig() ([]byte, error) {
 }
 
 type LocalBundlesConfig struct {
-	Watch              bool                       `mapstructure:"watch"`
-	Paths              []string                   `mapstructure:"paths"`
-	Ignore             []string                   `mapstructure:"ignore"`
-	SkipVerification   bool                       `mapstructure:"skip_verification"`
-	VerificationConfig *bundle.VerificationConfig `mapstructure:"verification_config"`
+	Watch              bool                       `json:"watch"`
+	Paths              []string                   `json:"paths"`
+	Ignore             []string                   `json:"ignore"`
+	SkipVerification   bool                       `json:"skip_verification"`
+	VerificationConfig *bundle.VerificationConfig `json:"verification_config"`
 }
 
 type OPAConfig struct {

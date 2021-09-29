@@ -14,7 +14,7 @@ import (
 const PluginName = "best_decision_log"
 
 type Config struct {
-	Enabled bool `mapstructure:"enabled"`
+	Enabled bool `json:"enabled"`
 }
 
 type DecisionLogger struct {
