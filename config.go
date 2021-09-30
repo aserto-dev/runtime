@@ -17,6 +17,7 @@ type Config struct {
 	InstanceID                    string             `json:"instance_id"`
 	PluginsErrorLimit             int                `json:"plugins_error_limit"`
 	GracefulShutdownPeriodSeconds int                `json:"graceful_shutdown_period_seconds"`
+	MaxPluginWaitTimeSeconds      int                `json:"max_plugin_wait_time_seconds"`
 	Store                         string             `json:"store"`
 	Config                        OPAConfig          `json:"config"`
 }
