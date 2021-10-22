@@ -17,6 +17,7 @@ import (
 	"github.com/open-policy-agent/opa/plugins/discovery"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/storage"
+	"github.com/open-policy-agent/opa/storage/inmem"
 	"github.com/open-policy-agent/opa/topdown/cache"
 	"github.com/open-policy-agent/opa/version"
 	"github.com/pkg/errors"
@@ -43,6 +44,7 @@ type Runtime struct {
 
 	pluginStates *sync.Map
 	bundleStates *sync.Map
+	storage      storage.Store
 }
 
 type BundleState struct {
@@ -60,11 +62,10 @@ type RuntimeState struct {
 }
 
 // newOPARuntime creates a new OPA Runtime
-func newOPARuntime(ctx context.Context, logger *zerolog.Logger, cfg *Config, store storage.Store, opts ...RuntimeOption) (*Runtime, func(), error) {
+func newOPARuntime(ctx context.Context, logger *zerolog.Logger, cfg *Config, opts ...RuntimeOption) (*Runtime, func(), error) {
 	newLogger := logger.With().Str("component", "runtime").Logger()
 
 	runtime := &Runtime{
-		Store:  store,
 		Logger: &newLogger,
 		Config: cfg,
 
@@ -83,6 +84,10 @@ func newOPARuntime(ctx context.Context, logger *zerolog.Logger, cfg *Config, sto
 
 	for _, opt := range opts {
 		opt(runtime)
+	}
+
+	if runtime.Store == nil {
+		runtime.Store = inmem.New()
 	}
 
 	// We shouldn't register global builtins, these should be per runtime.

@@ -4,6 +4,7 @@ import (
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/plugins"
 	"github.com/open-policy-agent/opa/rego"
+	"github.com/open-policy-agent/opa/storage"
 )
 
 type RuntimeOption func(*Runtime)
@@ -66,5 +67,11 @@ func WithBuiltinDyn(decl *rego.Function, impl rego.BuiltinDyn) RuntimeOption {
 			Name: decl.Name,
 			Decl: decl.Decl,
 		}
+	}
+}
+
+func WithStorage(storage storage.Store) RuntimeOption {
+	return func(r *Runtime) {
+		r.storage = storage
 	}
 }
