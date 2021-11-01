@@ -61,6 +61,8 @@ type RuntimeState struct {
 	Bundles []BundleState
 }
 
+var builtinsLock sync.Mutex
+
 // newOPARuntime creates a new OPA Runtime
 func newOPARuntime(ctx context.Context, logger *zerolog.Logger, cfg *Config, opts ...RuntimeOption) (*Runtime, func(), error) {
 	newLogger := logger.With().Str("component", "runtime").Logger()
@@ -93,6 +95,8 @@ func newOPARuntime(ctx context.Context, logger *zerolog.Logger, cfg *Config, opt
 	// We shouldn't register global builtins, these should be per runtime.
 	// In order for that to work, the plugin manager has to allow us to tell the compiler
 	// of our builtins.
+	builtinsLock.Lock()
+	defer builtinsLock.Unlock()
 	for decl, impl := range runtime.builtins1 {
 		logger.Info().Str("name", decl.Name).Msg("registering builtin1")
 		rego.RegisterBuiltin1(decl, impl)
