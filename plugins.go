@@ -61,6 +61,10 @@ func (r *Runtime) pluginsLoaded() bool {
 			continue
 		}
 
+		if pluginName == "discovery" && r.Config.Config.Discovery == nil {
+			continue
+		}
+
 		r.Logger.Trace().Str("state", string(status.State)).Str("plugin-name", pluginName).Msg("plugin not ready")
 		return false
 	}
