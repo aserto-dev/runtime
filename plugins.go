@@ -72,8 +72,7 @@ func (r *Runtime) pluginsLoaded() bool {
 	return true
 }
 
-func (r *Runtime) bundlesErrorRecorder(status bundle.Status) {
-
+func (r *Runtime) bundlesStatusCallback(status bundle.Status) {
 	errs := status.Errors
 	if status.Code == bundleErrorCode {
 		errs = append(errs, errors.Errorf("bundle error: %s", status.Message))
@@ -89,8 +88,17 @@ func (r *Runtime) bundlesErrorRecorder(status bundle.Status) {
 	})
 }
 
-func (r *Runtime) errorRecorder(status map[string]*plugins.Status) {
+func (r *Runtime) pluginStatusCallback(status map[string]*plugins.Status) {
 	for n, s := range status {
+		if n == "bundle" && !r.bundlesCallbackRegistered {
+			plugin := r.PluginsManager.Plugin("bundle")
+			if plugin != nil {
+				bundlePlugin := plugin.(*bundle.Plugin)
+				bundlePlugin.Register("aserto-error-recorder", r.bundlesStatusCallback)
+				r.bundlesCallbackRegistered = true
+			}
+		}
+
 		if s == nil {
 			continue
 		}

@@ -1,21 +1,22 @@
 {
   "cSpell.words": [
     "Aserto",
-    "Deps",
-    "TLSCA",
-    "Wrapf",
     "authz",
     "barkimedes",
     "bctx",
+    "Deps",
     "edsx",
     "gomnd",
     "grpc",
     "inmem",
     "keyid",
+    "mitchellh",
     "nolint",
     "pjson",
     "protobuf",
     "rego",
-    "stretchr"
+    "stretchr",
+    "TLSCA",
+    "Wrapf"
   ]
 }

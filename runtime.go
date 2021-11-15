@@ -42,9 +42,11 @@ type Runtime struct {
 	builtins         []func(*rego.Rego)
 	compilerBuiltins map[string]*ast.Builtin
 
-	pluginStates *sync.Map
-	bundleStates *sync.Map
-	storage      storage.Store
+	pluginStates              *sync.Map
+	bundleStates              *sync.Map
+	bundlesCallbackRegistered bool
+
+	storage storage.Store
 }
 
 type BundleState struct {
@@ -152,12 +154,6 @@ func newOPARuntime(ctx context.Context, logger *zerolog.Logger, cfg *Config, opt
 			logger.Error().Err(err).Msg("unable to open watch")
 			return nil, nil, errors.Wrap(err, "unable to open watch for local bundles")
 		}
-	}
-
-	plugin := runtime.PluginsManager.Plugin("bundle")
-	if plugin != nil {
-		bundlePlugin := plugin.(*bundleplugin.Plugin)
-		bundlePlugin.Register("aserto-error-recorder", runtime.bundlesErrorRecorder)
 	}
 
 	return runtime,
@@ -316,7 +312,7 @@ func (r *Runtime) newOPAPluginsManager(ctx context.Context) (*plugins.Manager, e
 		return nil, errors.Wrap(err, "failed to initialize OPA plugins")
 	}
 
-	manager.RegisterPluginStatusListener("aserto-error-recorder", r.errorRecorder)
+	manager.RegisterPluginStatusListener("aserto-error-recorder", r.pluginStatusCallback)
 
 	if err := manager.Init(ctx); err != nil {
 		return nil, errors.Wrap(err, "initialization error")
@@ -350,9 +346,29 @@ func (r *Runtime) loadPaths(paths []string) (map[string]*bundle.Bundle, error) {
 		r.Logger.Info().Str("path", path).Msg("Loading local bundle")
 		result[path], err = loader.NewFileLoader().WithBundleVerificationConfig(verificationConfig).
 			WithSkipBundleVerification(skipVerify).AsBundle(path)
+
 		if err != nil {
+			errorStatus := bundleplugin.Status{
+				Name: path,
+			}
+			errorStatus.SetError(err)
+
+			r.bundlesStatusCallback(errorStatus)
+
 			return nil, errors.Wrapf(err, "load bundle from local path '%s'", path)
 		}
+
+		r.bundlesStatusCallback(
+			bundleplugin.Status{
+				Name:                     path,
+				LastSuccessfulActivation: time.Now(),
+				LastSuccessfulRequest:    time.Now(),
+				LastSuccessfulDownload:   time.Now(),
+				LastRequest:              time.Now(),
+				ActiveRevision:           result[path].Manifest.Revision,
+				Errors:                   []error{},
+				Message:                  "local bundle loaded",
+			})
 	}
 
 	return result, nil
