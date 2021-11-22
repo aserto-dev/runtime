@@ -26,7 +26,6 @@ import (
 
 // Runtime manages the OPA runtime (plugins, store and info data)
 type Runtime struct {
-	Store           storage.Store
 	Logger          *zerolog.Logger
 	Config          *Config
 	PluginsManager  *plugins.Manager
@@ -41,6 +40,7 @@ type Runtime struct {
 	builtinsDyn      map[*rego.Function]rego.BuiltinDyn
 	builtins         []func(*rego.Rego)
 	compilerBuiltins map[string]*ast.Builtin
+	imports          []string
 
 	pluginStates              *sync.Map
 	bundleStates              *sync.Map
@@ -90,8 +90,8 @@ func newOPARuntime(ctx context.Context, logger *zerolog.Logger, cfg *Config, opt
 		opt(runtime)
 	}
 
-	if runtime.Store == nil {
-		runtime.Store = inmem.New()
+	if runtime.storage == nil {
+		runtime.storage = inmem.New()
 	}
 
 	// We shouldn't register global builtins, these should be per runtime.
@@ -303,7 +303,7 @@ func (r *Runtime) newOPAPluginsManager(ctx context.Context) (*plugins.Manager, e
 	manager, err := plugins.New(
 		rawConfig,
 		r.Config.InstanceID,
-		r.Store,
+		r.storage,
 		plugins.InitBundles(loadedBundles),
 		plugins.Info(ast.NewTerm(info)),
 		plugins.MaxErrors(r.Config.PluginsErrorLimit),

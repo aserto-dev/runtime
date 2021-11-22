@@ -37,12 +37,12 @@ func (r *Runtime) Query(ctx context.Context, qStr string, input map[string]inter
 		return nil, errors.Wrap(err, "failed to validate query")
 	}
 
-	txn, err := r.Store.NewTransaction(ctx)
+	txn, err := r.storage.NewTransaction(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create new OPA store transaction")
 	}
 
-	defer r.Store.Abort(ctx, txn)
+	defer r.storage.Abort(ctx, txn)
 
 	results, err := r.execQuery(ctx, txn, decisionID, parsedQuery, input, m, explain, includeMetrics, includeInstrumentation, pretty)
 	if err != nil {
@@ -73,7 +73,7 @@ func (r *Runtime) execQuery(ctx context.Context, txn storage.Transaction, decisi
 	compiler := r.PluginsManager.GetCompiler()
 
 	opts = append(opts,
-		rego.Store(r.Store),
+		rego.Store(r.storage),
 		rego.Transaction(txn),
 		rego.Compiler(compiler),
 		rego.ParsedQuery(parsedQuery),
@@ -85,6 +85,7 @@ func (r *Runtime) execQuery(ctx context.Context, txn storage.Transaction, decisi
 		rego.UnsafeBuiltins(unsafeBuiltinsMap),
 		rego.InterQueryBuiltinCache(r.InterQueryCache),
 		rego.Input(input),
+		rego.Imports(r.imports),
 	)
 
 	for _, r := range r.PluginsManager.GetWasmResolvers() {

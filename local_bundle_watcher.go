@@ -95,9 +95,9 @@ func (r *Runtime) processWatcherUpdate(ctx context.Context, paths []string, remo
 		return err
 	}
 
-	return storage.Txn(ctx, r.Store, storage.WriteParams, func(txn storage.Transaction) error {
+	return storage.Txn(ctx, r.storage, storage.WriteParams, func(txn storage.Transaction) error {
 		_, err = insertAndCompile(ctx, insertAndCompileOptions{
-			Store:     r.Store,
+			Store:     r.storage,
 			Txn:       txn,
 			Bundles:   loadedBundles,
 			MaxErrors: -1,

@@ -75,3 +75,15 @@ func WithStorage(storage storage.Store) RuntimeOption {
 		r.storage = storage
 	}
 }
+
+func WithImport(imp string) RuntimeOption {
+	return func(r *Runtime) {
+		r.imports = append(r.imports, imp)
+	}
+}
+
+func WithImports(imp []string) RuntimeOption {
+	return func(r *Runtime) {
+		r.imports = append(r.imports, imp...)
+	}
+}

@@ -6,6 +6,7 @@
     "bctx",
     "Deps",
     "edsx",
+    "fsnotify",
     "gomnd",
     "grpc",
     "inmem",
