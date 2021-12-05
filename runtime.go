@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/aserto-dev/go-utils/logger"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/bundle"
 	"github.com/open-policy-agent/opa/loader"
@@ -307,7 +308,9 @@ func (r *Runtime) newOPAPluginsManager(ctx context.Context) (*plugins.Manager, e
 		plugins.InitBundles(loadedBundles),
 		plugins.Info(ast.NewTerm(info)),
 		plugins.MaxErrors(r.Config.PluginsErrorLimit),
-		plugins.GracefulShutdownPeriod(r.Config.GracefulShutdownPeriodSeconds))
+		plugins.GracefulShutdownPeriod(r.Config.GracefulShutdownPeriodSeconds),
+		plugins.Logger(logger.NewOpaLogger(r.Logger)),
+	)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize OPA plugins")
 	}
