@@ -3,6 +3,7 @@ module github.com/aserto-dev/runtime
 go 1.16
 
 require (
+	github.com/aserto-dev/go-utils v0.2.2
 	github.com/aserto-dev/mage-loot v0.4.10
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/google/uuid v1.1.2

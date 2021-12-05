@@ -3,6 +3,7 @@ package runtime
 import (
 	"context"
 
+	"github.com/aserto-dev/go-utils/cerr"
 	"github.com/google/uuid"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/metrics"
@@ -34,7 +35,8 @@ func (r *Runtime) Query(ctx context.Context, qStr string, input map[string]inter
 
 	parsedQuery, err := validateQuery(qStr)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to validate query")
+		return nil, cerr.ErrBadQuery.Err(err).Str("query", qStr).Msg(
+			errors.Wrap(err, "failed to validate query").Error())
 	}
 
 	txn, err := r.storage.NewTransaction(ctx)
@@ -46,7 +48,11 @@ func (r *Runtime) Query(ctx context.Context, qStr string, input map[string]inter
 
 	results, err := r.execQuery(ctx, txn, decisionID, parsedQuery, input, m, explain, includeMetrics, includeInstrumentation, pretty)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to execute query")
+		return nil, cerr.ErrQueryExecutionFailed.
+			Str("decision-id", decisionID).
+			Str("query", qStr).
+			Err(err).
+			Msg(errors.Wrap(err, "query execution failed").Error())
 	}
 
 	return results, nil

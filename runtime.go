@@ -67,7 +67,7 @@ var builtinsLock sync.Mutex
 
 // newOPARuntime creates a new OPA Runtime
 func newOPARuntime(ctx context.Context, logger *zerolog.Logger, cfg *Config, opts ...RuntimeOption) (*Runtime, func(), error) {
-	newLogger := logger.With().Str("component", "runtime").Logger()
+	newLogger := logger.With().Str("component", "runtime").Str("instance-id", cfg.InstanceID).Logger()
 
 	runtime := &Runtime{
 		Logger: &newLogger,

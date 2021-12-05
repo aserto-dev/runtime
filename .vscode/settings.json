@@ -4,6 +4,7 @@
     "authz",
     "barkimedes",
     "bctx",
+    "cerr",
     "Deps",
     "edsx",
     "fsnotify",
