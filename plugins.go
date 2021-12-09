@@ -20,8 +20,8 @@ type PluginDefinition struct {
 }
 
 // WaitForPlugins waits for all plugins to be ready
-func (r *Runtime) WaitForPlugins(ctx context.Context, maxWaitTime time.Duration) error {
-	ctx, cancel := context.WithTimeout(ctx, maxWaitTime)
+func (r *Runtime) WaitForPlugins(timeoutCtx context.Context, maxWaitTime time.Duration) error {
+	timeoutCtx, cancel := context.WithTimeout(timeoutCtx, maxWaitTime)
 	defer cancel()
 
 	for {
@@ -31,8 +31,8 @@ func (r *Runtime) WaitForPlugins(ctx context.Context, maxWaitTime time.Duration)
 			return nil
 		}
 
-		if ctx.Err() != nil {
-			return errors.Wrap(ctx.Err(), "waiting for plugins")
+		if timeoutCtx.Err() != nil {
+			return errors.Wrap(timeoutCtx.Err(), "waiting for plugins")
 		}
 
 		time.Sleep(10 * time.Millisecond) //nolint:gomnd
@@ -55,6 +55,10 @@ type pluginState struct {
 
 // pluginsLoaded returns true if all plugins have been loaded
 func (r *Runtime) pluginsLoaded() bool {
+	if r.PluginsManager == nil {
+		return false
+	}
+
 	pluginStates := r.PluginsManager.PluginStatus()
 	for pluginName, status := range pluginStates {
 		if status == nil || status.State == plugins.StateOK {
@@ -86,6 +90,8 @@ func (r *Runtime) bundlesStatusCallback(status bundle.Status) {
 		lastActivation: status.LastSuccessfulActivation,
 		lastDownload:   status.LastSuccessfulDownload,
 	})
+
+	r.latestState = r.status()
 }
 
 func (r *Runtime) pluginStatusCallback(status map[string]*plugins.Status) {
@@ -114,4 +120,6 @@ func (r *Runtime) pluginStatusCallback(status map[string]*plugins.Status) {
 			r.pluginStates.Store(n, &pluginState{loaded: true})
 		}
 	}
+
+	r.latestState = r.status()
 }

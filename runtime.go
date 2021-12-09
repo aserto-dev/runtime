@@ -47,7 +47,8 @@ type Runtime struct {
 	bundleStates              *sync.Map
 	bundlesCallbackRegistered bool
 
-	storage storage.Store
+	storage     storage.Store
+	latestState *RuntimeState
 }
 
 type BundleState struct {
@@ -85,6 +86,7 @@ func newOPARuntime(ctx context.Context, logger *zerolog.Logger, cfg *Config, opt
 		pluginStates: &sync.Map{},
 		bundleStates: &sync.Map{},
 		plugins:      map[string]plugins.Factory{},
+		latestState:  &RuntimeState{},
 	}
 
 	for _, opt := range opts {
@@ -157,6 +159,8 @@ func newOPARuntime(ctx context.Context, logger *zerolog.Logger, cfg *Config, opt
 		}
 	}
 
+	runtime.latestState = runtime.status()
+
 	return runtime,
 		func() {
 			runtime.PluginsManager.Stop(context.Background())
@@ -211,6 +215,10 @@ func (r *Runtime) BuiltinRequirements() (json.RawMessage, error) {
 }
 
 func (r *Runtime) Status() *RuntimeState {
+	return r.latestState
+}
+
+func (r *Runtime) status() *RuntimeState {
 	result := &RuntimeState{
 		Ready:   true,
 		Errors:  []error{},
@@ -323,7 +331,7 @@ func (r *Runtime) newOPAPluginsManager(ctx context.Context) (*plugins.Manager, e
 
 	// TODO: this line is useless because the manager initializes the compiler
 	// during init, and we don't have any control over it.
-	// The compiler creates it own builtins array during its own init(), and
+	// The compiler creates its own builtins array during its own init(), and
 	// afterwards that cannot be changed anymore.
 	// We have to improve this in order to have per runtime builtins.
 	// manager.GetCompiler().WithBuiltins(r.compilerBuiltins)
