@@ -3,6 +3,7 @@ package runtime
 import (
 	"encoding/json"
 
+	"github.com/mitchellh/copystructure"
 	"github.com/open-policy-agent/opa/bundle"
 	"github.com/open-policy-agent/opa/keys"
 	bundleplugin "github.com/open-policy-agent/opa/plugins/bundle"
@@ -46,4 +47,25 @@ type OPAConfig struct {
 	DefaultAuthorizationDecision *string                         `json:"default_authorization_decision,omitempty"`
 	Caching                      *cache.Config                   `json:"caching,omitempty"`
 	PersistenceDirectory         *string                         `json:"persistence_directory,omitempty"`
+}
+
+func (c OPAConfig) ServicesCopy() map[string]interface{} {
+	services := make(map[string]interface{})
+	for k, v := range c.Services {
+		services[k] = v
+	}
+	return services
+}
+
+func (c OPAConfig) DiscoveryCopy() *discovery.Config {
+	if c.Discovery == nil {
+		return nil
+	}
+
+	copy, err := copystructure.Copy(c.Discovery)
+	if err != nil {
+		panic(err)
+	}
+
+	return copy.(*discovery.Config)
 }

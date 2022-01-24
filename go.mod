@@ -14,6 +14,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.25.0
 	github.com/stretchr/testify v1.7.0
+	k8s.io/utils v0.0.0-20210802155522-efc7438f0176
 )
 
 require (
