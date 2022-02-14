@@ -153,7 +153,7 @@ func buildCommandLoaderFilter(bundleMode bool, ignore []string) func(string, os.
 
 func buildVerificationConfig(pubKey, pubKeyID, alg, scope string, excludeFiles []string) (*bundle.VerificationConfig, error) {
 	if pubKey == "" {
-		return nil, nil
+		return nil, errors.New("pubKey is empty")
 	}
 
 	keyConfig := &bundle.KeyConfig{

@@ -94,7 +94,9 @@ func (r *Runtime) processWatcherUpdate(ctx context.Context, paths []string, remo
 	if err != nil {
 		return err
 	}
-
+	if removed != "" {
+		r.Logger.Debug().Msgf("Removed event name value: %v", removed)
+	}
 	return storage.Txn(ctx, r.storage, storage.WriteParams, func(txn storage.Transaction) error {
 		_, err = insertAndCompile(ctx, insertAndCompileOptions{
 			Store:     r.storage,
