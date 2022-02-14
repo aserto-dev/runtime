@@ -67,7 +67,7 @@ func TestRemoteBundle(t *testing.T) {
 		Config: OPAConfig{
 			Services: map[string]interface{}{
 				"acmecorp": map[string]interface{}{
-					"url":                             "https://bundler.eng.aserto.com/6d9fa375-93d3-11eb-a705-002310f5c6bf",
+					"url":                             "https://bundler.eng.aserto.com/790b3ed3-413d-11ec-be40-00bfff9771b6",
 					"response_header_timeout_seconds": 5,
 					"credentials": map[string]interface{}{
 						"bearer": map[string]interface{}{
@@ -79,7 +79,7 @@ func TestRemoteBundle(t *testing.T) {
 			Bundles: map[string]*bundle.Source{
 				"testbundle": &bundle.Source{
 					Service:  "acmecorp",
-					Resource: "/0d755a12-93d4-11eb-87c6-012310f5c6bf/bundle.tar.gz",
+					Resource: "/f6235144-7e79-11ec-8a01-01bfff9771b6/bundle.tar.gz",
 				},
 			},
 		},

@@ -1,5 +1,11 @@
-.vscode/launch.json
+/.dev
+/.ext
+/.vscode/launch.json
+/.vscode/tasks.json
+
 /example/verdict
+
 bundle.tgz
 bundle.tar.gz
+
 cover.out
