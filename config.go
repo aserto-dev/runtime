@@ -50,11 +50,16 @@ type OPAConfig struct {
 }
 
 func (c OPAConfig) ServicesCopy() map[string]interface{} {
-	services := make(map[string]interface{})
-	for k, v := range c.Services {
-		services[k] = v
+	if c.Services == nil {
+		return nil
 	}
-	return services
+
+	copy, err := copystructure.Copy(c.Services)
+	if err != nil {
+		panic(err)
+	}
+
+	return copy.(map[string]interface{})
 }
 
 func (c OPAConfig) DiscoveryCopy() *discovery.Config {
