@@ -43,9 +43,10 @@ type Runtime struct {
 	compilerBuiltins map[string]*ast.Builtin
 	imports          []string
 
-	pluginStates              *sync.Map
-	bundleStates              *sync.Map
-	bundlesCallbackRegistered bool
+	pluginStates                *sync.Map
+	bundleStates                *sync.Map
+	bundlesCallbackRegistered   bool
+	discoveryCallbackRegistered bool
 
 	storage     storage.Store
 	latestState *RuntimeState

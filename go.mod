@@ -2,12 +2,15 @@ module github.com/aserto-dev/runtime
 
 go 1.17
 
+//replace github.com/aserto-dev/go-utils => ../go-utils
+
 require (
-	github.com/aserto-dev/go-utils v0.8.0
+	github.com/aserto-dev/go-utils v0.8.1
 	github.com/aserto-dev/mage-loot v0.8.0
 	github.com/fsnotify/fsnotify v1.5.1
 	github.com/google/uuid v1.3.0
 	github.com/google/wire v0.5.0
+	github.com/hashicorp/go-multierror v1.1.0
 	github.com/magefile/mage v1.12.1
 	github.com/mitchellh/copystructure v1.2.0
 	github.com/open-policy-agent/opa v0.37.2
@@ -28,6 +31,7 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/subcommands v1.0.1 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
+	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-hclog v1.0.0 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/kyokomi/emoji v2.2.4+incompatible // indirect
