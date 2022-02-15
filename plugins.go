@@ -4,9 +4,12 @@ import (
 	"context"
 	"time"
 
+	"github.com/aserto-dev/go-utils/cerr"
+	"github.com/hashicorp/go-multierror"
 	"github.com/open-policy-agent/opa/metrics"
 	"github.com/open-policy-agent/opa/plugins"
 	"github.com/open-policy-agent/opa/plugins/bundle"
+	"github.com/open-policy-agent/opa/plugins/discovery"
 	"github.com/pkg/errors"
 )
 
@@ -23,16 +26,23 @@ type PluginDefinition struct {
 func (r *Runtime) WaitForPlugins(timeoutCtx context.Context, maxWaitTime time.Duration) error {
 	timeoutCtx, cancel := context.WithTimeout(timeoutCtx, maxWaitTime)
 	defer cancel()
-
 	for {
 		s := r.Status()
 		if s.Ready {
 			r.Logger.Info().Msg("runtime is ready")
 			return nil
 		}
+		errs := s.Errors
+
+		for i := range s.Bundles {
+			errs = append(errs, s.Bundles[i].Errors...)
+		}
+		if len(errs) > 0 {
+			return cerr.ErrBadRuntime.Err(multierror.Append(nil, errs...))
+		}
 
 		if timeoutCtx.Err() != nil {
-			return errors.Wrap(timeoutCtx.Err(), "waiting for plugins")
+			return cerr.ErrRuntimeLoading.Err(timeoutCtx.Err()).Msg("timeout while waiting for runtime to load")
 		}
 
 		time.Sleep(10 * time.Millisecond) //nolint:gomnd
@@ -102,6 +112,14 @@ func (r *Runtime) pluginStatusCallback(status map[string]*plugins.Status) {
 				bundlePlugin := plugin.(*bundle.Plugin)
 				bundlePlugin.Register("aserto-error-recorder", r.bundlesStatusCallback)
 				r.bundlesCallbackRegistered = true
+			}
+		}
+		if n == "discovery" && !r.discoveryCallbackRegistered {
+			plugin := r.PluginsManager.Plugin("discovery")
+			if plugin != nil {
+				discoveryPlugin := plugin.(*discovery.Discovery)
+				discoveryPlugin.RegisterListener("aserto-error-recorder", r.bundlesStatusCallback)
+				r.discoveryCallbackRegistered = true
 			}
 		}
 
