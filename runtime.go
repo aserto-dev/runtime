@@ -69,8 +69,8 @@ type RuntimeState struct {
 var builtinsLock sync.Mutex
 
 // newOPARuntime creates a new OPA Runtime
-func newOPARuntime(ctx context.Context, logger *zerolog.Logger, cfg *Config, opts ...RuntimeOption) (*Runtime, func(), error) {
-	newLogger := logger.With().Str("component", "runtime").Str("instance-id", cfg.InstanceID).Logger()
+func newOPARuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts ...RuntimeOption) (*Runtime, func(), error) {
+	newLogger := log.With().Str("component", "runtime").Str("instance-id", cfg.InstanceID).Logger()
 
 	runtime := &Runtime{
 		Logger: &newLogger,
@@ -104,27 +104,27 @@ func newOPARuntime(ctx context.Context, logger *zerolog.Logger, cfg *Config, opt
 	builtinsLock.Lock()
 	defer builtinsLock.Unlock()
 	for decl, impl := range runtime.builtins1 {
-		logger.Info().Str("name", decl.Name).Msg("registering builtin1")
+		log.Info().Str("name", decl.Name).Msg("registering builtin1")
 		rego.RegisterBuiltin1(decl, impl)
 	}
 
 	for decl, impl := range runtime.builtins2 {
-		logger.Info().Str("name", decl.Name).Msg("registering builtin2")
+		log.Info().Str("name", decl.Name).Msg("registering builtin2")
 		rego.RegisterBuiltin2(decl, impl)
 	}
 
 	for decl, impl := range runtime.builtins3 {
-		logger.Info().Str("name", decl.Name).Msg("registering builtin3")
+		log.Info().Str("name", decl.Name).Msg("registering builtin3")
 		rego.RegisterBuiltin3(decl, impl)
 	}
 
 	for decl, impl := range runtime.builtins4 {
-		logger.Info().Str("name", decl.Name).Msg("registering builtin4")
+		log.Info().Str("name", decl.Name).Msg("registering builtin4")
 		rego.RegisterBuiltin4(decl, impl)
 	}
 
 	for decl, impl := range runtime.builtinsDyn {
-		logger.Info().Str("name", decl.Name).Msg("registering builtinDyn")
+		log.Info().Str("name", decl.Name).Msg("registering builtinDyn")
 		rego.RegisterBuiltinDyn(decl, impl)
 	}
 
@@ -139,7 +139,7 @@ func newOPARuntime(ctx context.Context, logger *zerolog.Logger, cfg *Config, opt
 	registeredPlugins := map[string]plugins.Factory{}
 
 	for pluginName, factory := range runtime.plugins {
-		logger.Info().Str("plugin-name", pluginName).Msg("registering plugin")
+		log.Info().Str("plugin-name", pluginName).Msg("registering plugin")
 		registeredPlugins[pluginName] = factory
 	}
 
@@ -152,10 +152,10 @@ func newOPARuntime(ctx context.Context, logger *zerolog.Logger, cfg *Config, opt
 	runtime.PluginsManager.Register("discovery", disco)
 
 	if cfg.LocalBundles.Watch {
-		logger.Info().Msg("Will start watching local bundles for changes")
+		log.Info().Msg("Will start watching local bundles for changes")
 		err := runtime.startWatcher(ctx, cfg.LocalBundles.Paths, runtime.onReloadLogger)
 		if err != nil {
-			logger.Error().Err(err).Msg("unable to open watch")
+			log.Error().Err(err).Msg("unable to open watch")
 			return nil, nil, errors.Wrap(err, "unable to open watch for local bundles")
 		}
 	}

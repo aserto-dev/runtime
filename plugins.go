@@ -14,7 +14,9 @@ import (
 )
 
 const (
-	bundleErrorCode = "bundle_error"
+	bundleErrorCode     = "bundle_error"
+	discoveryPluginName = "discovery"
+	bundlePluginName    = "bundle"
 )
 
 type PluginDefinition struct {
@@ -45,7 +47,7 @@ func (r *Runtime) WaitForPlugins(timeoutCtx context.Context, maxWaitTime time.Du
 			return cerr.ErrRuntimeLoading.Err(timeoutCtx.Err()).Msg("timeout while waiting for runtime to load")
 		}
 
-		time.Sleep(10 * time.Millisecond) //nolint:gomnd
+		time.Sleep(10 * time.Millisecond)
 	}
 }
 
@@ -75,7 +77,7 @@ func (r *Runtime) pluginsLoaded() bool {
 			continue
 		}
 
-		if pluginName == "discovery" && r.Config.Config.Discovery == nil {
+		if pluginName == discoveryPluginName && r.Config.Config.Discovery == nil {
 			continue
 		}
 
@@ -106,16 +108,16 @@ func (r *Runtime) bundlesStatusCallback(status bundle.Status) {
 
 func (r *Runtime) pluginStatusCallback(status map[string]*plugins.Status) {
 	for n, s := range status {
-		if n == "bundle" && !r.bundlesCallbackRegistered {
-			plugin := r.PluginsManager.Plugin("bundle")
+		if n == bundlePluginName && !r.bundlesCallbackRegistered {
+			plugin := r.PluginsManager.Plugin(bundlePluginName)
 			if plugin != nil {
 				bundlePlugin := plugin.(*bundle.Plugin)
 				bundlePlugin.Register("aserto-error-recorder", r.bundlesStatusCallback)
 				r.bundlesCallbackRegistered = true
 			}
 		}
-		if n == "discovery" && !r.discoveryCallbackRegistered {
-			plugin := r.PluginsManager.Plugin("discovery")
+		if n == discoveryPluginName && !r.discoveryCallbackRegistered {
+			plugin := r.PluginsManager.Plugin(discoveryPluginName)
 			if plugin != nil {
 				discoveryPlugin := plugin.(*discovery.Discovery)
 				discoveryPlugin.RegisterListener("aserto-error-recorder", r.bundlesStatusCallback)

@@ -73,6 +73,8 @@ linters:
     - depguard
     - errcheck
     - funlen
+    - goconst
+    - gocritic
     - gocyclo
     - gofmt
     - goimports
@@ -85,9 +87,11 @@ linters:
     - exportloopref
     - staticcheck
     - structcheck
+    - stylecheck
     - typecheck
     - unconvert
     - unparam
+    - unused
     - varcheck
 
 issues:
@@ -100,7 +104,7 @@ issues:
     - shadow of imported from 'github.com/stretchr/testify/assert' package 'assert'
   # Excluding configuration per-path, per-linter, per-text and per-source
   exclude-rules:
-    - path: _test.go
+    - path: runtime_test.go
       linters:
         - gomnd
         - gofmt

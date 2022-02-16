@@ -70,9 +70,9 @@ func WithBuiltinDyn(decl *rego.Function, impl rego.BuiltinDyn) RuntimeOption {
 	}
 }
 
-func WithStorage(storage storage.Store) RuntimeOption {
+func WithStorage(storageInterface storage.Store) RuntimeOption {
 	return func(r *Runtime) {
-		r.storage = storage
+		r.storage = storageInterface
 	}
 }
 

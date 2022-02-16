@@ -54,12 +54,12 @@ func (c OPAConfig) ServicesCopy() map[string]interface{} {
 		return nil
 	}
 
-	copy, err := copystructure.Copy(c.Services)
+	servicesCopy, err := copystructure.Copy(c.Services)
 	if err != nil {
 		panic(err)
 	}
 
-	return copy.(map[string]interface{})
+	return servicesCopy.(map[string]interface{})
 }
 
 func (c OPAConfig) DiscoveryCopy() *discovery.Config {
@@ -67,10 +67,10 @@ func (c OPAConfig) DiscoveryCopy() *discovery.Config {
 		return nil
 	}
 
-	copy, err := copystructure.Copy(c.Discovery)
+	discoveryCopy, err := copystructure.Copy(c.Discovery)
 	if err != nil {
 		panic(err)
 	}
 
-	return copy.(*discovery.Config)
+	return discoveryCopy.(*discovery.Config)
 }
