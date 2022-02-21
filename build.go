@@ -56,7 +56,7 @@ var buildTargetTypeToString = map[BuildTargetType]string{
 
 // BuildParams contains all parameters used for doing a build
 type BuildParams struct {
-	CapabilitiesJsonFile string
+	CapabilitiesJSONFile string
 	Target               BuildTargetType
 	OptimizationLevel    int
 	Entrypoints          []string
@@ -92,16 +92,16 @@ func (r *Runtime) Build(params BuildParams, paths []string) error {
 
 	var capabilities *ast.Capabilities
 	// if capabilities are not provided then ast.CapabilitiesForThisVersion must be used
-	if params.CapabilitiesJsonFile == "" {
+	if params.CapabilitiesJSONFile == "" {
 		capabilities = ast.CapabilitiesForThisVersion()
 	} else {
-		capabilitiesJSON, err := os.ReadFile(params.CapabilitiesJsonFile)
+		capabilitiesJSON, err := os.ReadFile(params.CapabilitiesJSONFile)
 		if err != nil {
-			return errors.Wrapf(err, "couldn't read capabilities JSON file [%s]", params.CapabilitiesJsonFile)
+			return errors.Wrapf(err, "couldn't read capabilities JSON file [%s]", params.CapabilitiesJSONFile)
 		}
 		capabilities, err = ast.LoadCapabilitiesJSON(bytes.NewBufferString(string(capabilitiesJSON)))
 		if err != nil {
-			return errors.Wrapf(err, "failed to load capabilities file [%s]", params.CapabilitiesJsonFile)
+			return errors.Wrapf(err, "failed to load capabilities file [%s]", params.CapabilitiesJSONFile)
 		}
 	}
 
@@ -153,7 +153,7 @@ func buildCommandLoaderFilter(bundleMode bool, ignore []string) func(string, os.
 
 func buildVerificationConfig(pubKey, pubKeyID, alg, scope string, excludeFiles []string) (*bundle.VerificationConfig, error) {
 	if pubKey == "" {
-		return nil, nil
+		return nil, errors.New("pubKey is empty")
 	}
 
 	keyConfig := &bundle.KeyConfig{
