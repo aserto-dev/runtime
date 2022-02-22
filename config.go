@@ -49,7 +49,7 @@ type OPAConfig struct {
 	PersistenceDirectory         *string                         `json:"persistence_directory,omitempty"`
 }
 
-func (c OPAConfig) ServicesCopy() map[string]interface{} {
+func (c *OPAConfig) ServicesCopy() map[string]interface{} {
 	if c.Services == nil {
 		return nil
 	}
@@ -62,7 +62,7 @@ func (c OPAConfig) ServicesCopy() map[string]interface{} {
 	return servicesCopy.(map[string]interface{})
 }
 
-func (c OPAConfig) DiscoveryCopy() *discovery.Config {
+func (c *OPAConfig) DiscoveryCopy() *discovery.Config {
 	if c.Discovery == nil {
 		return nil
 	}

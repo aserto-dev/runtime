@@ -31,7 +31,6 @@ linters-settings:
       - dupImport # https://github.com/go-critic/go-critic/issues/845
       - ifElseChain
       - octalLiteral
-      - hugeParam # TODO: enable on optimisation
       - wrapperFunc
   gocyclo:
     min-complexity: 20

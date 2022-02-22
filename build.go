@@ -74,7 +74,7 @@ type BuildParams struct {
 }
 
 // Build builds a bundle using the Aserto OPA Runtime
-func (r *Runtime) Build(params BuildParams, paths []string) error {
+func (r *Runtime) Build(params *BuildParams, paths []string) error {
 	buf := bytes.NewBuffer(nil)
 
 	err := r.generateAllFakeBuiltins(paths)
