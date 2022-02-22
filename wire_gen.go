@@ -13,7 +13,7 @@ import (
 
 // Injectors from wire.go:
 
-func NewRuntime(ctx context.Context, logger *zerolog.Logger, cfg *Config, opts ...RuntimeOption) (*Runtime, func(), error) {
+func NewRuntime(ctx context.Context, logger *zerolog.Logger, cfg *Config, opts ...Option) (*Runtime, func(), error) {
 	runtime, cleanup, err := newOPARuntime(ctx, logger, cfg, opts...)
 	if err != nil {
 		return nil, nil, err

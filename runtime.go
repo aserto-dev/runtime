@@ -49,7 +49,7 @@ type Runtime struct {
 	discoveryCallbackRegistered bool
 
 	storage     storage.Store
-	latestState *RuntimeState
+	latestState *State
 }
 
 type BundleState struct {
@@ -60,7 +60,7 @@ type BundleState struct {
 	Errors         []error
 }
 
-type RuntimeState struct {
+type State struct {
 	Ready   bool
 	Errors  []error
 	Bundles []BundleState
@@ -69,7 +69,7 @@ type RuntimeState struct {
 var builtinsLock sync.Mutex
 
 // newOPARuntime creates a new OPA Runtime
-func newOPARuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts ...RuntimeOption) (*Runtime, func(), error) {
+func newOPARuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts ...Option) (*Runtime, func(), error) {
 	newLogger := log.With().Str("component", "runtime").Str("instance-id", cfg.InstanceID).Logger()
 
 	runtime := &Runtime{
@@ -87,7 +87,7 @@ func newOPARuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts .
 		pluginStates: &sync.Map{},
 		bundleStates: &sync.Map{},
 		plugins:      map[string]plugins.Factory{},
-		latestState:  &RuntimeState{},
+		latestState:  &State{},
 	}
 
 	for _, opt := range opts {
@@ -215,12 +215,12 @@ func (r *Runtime) BuiltinRequirements() (json.RawMessage, error) {
 	return jsonBytes, nil
 }
 
-func (r *Runtime) Status() *RuntimeState {
+func (r *Runtime) Status() *State {
 	return r.latestState
 }
 
-func (r *Runtime) status() *RuntimeState {
-	result := &RuntimeState{
+func (r *Runtime) status() *State {
+	result := &State{
 		Ready:   true,
 		Errors:  []error{},
 		Bundles: []BundleState{},
