@@ -10,7 +10,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-func NewRuntime(ctx context.Context, logger *zerolog.Logger, cfg *Config, opts ...RuntimeOption) (*Runtime, func(), error) {
+func NewRuntime(ctx context.Context, logger *zerolog.Logger, cfg *Config, opts ...Option) (*Runtime, func(), error) {
 	wire.Build(wire.NewSet(
 		newOPARuntime,
 	))

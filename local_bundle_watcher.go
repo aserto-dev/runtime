@@ -98,7 +98,7 @@ func (r *Runtime) processWatcherUpdate(ctx context.Context, paths []string, remo
 		r.Logger.Debug().Msgf("Removed event name value: %v", removed)
 	}
 	return storage.Txn(ctx, r.storage, storage.WriteParams, func(txn storage.Transaction) error {
-		_, err = insertAndCompile(ctx, insertAndCompileOptions{
+		_, err = insertAndCompile(ctx, &insertAndCompileOptions{
 			Store:     r.storage,
 			Txn:       txn,
 			Bundles:   loadedBundles,
@@ -129,7 +129,7 @@ type insertAndCompileResult struct {
 
 // insertAndCompile writes data and policy into the store and returns a compiler for the
 // store contents.
-func insertAndCompile(ctx context.Context, opts insertAndCompileOptions) (*insertAndCompileResult, error) {
+func insertAndCompile(ctx context.Context, opts *insertAndCompileOptions) (*insertAndCompileResult, error) {
 
 	if len(opts.Files.Documents) > 0 {
 		if err := opts.Store.Write(ctx, opts.Txn, storage.AddOp, storage.Path{}, opts.Files.Documents); err != nil {

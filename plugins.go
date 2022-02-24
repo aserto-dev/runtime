@@ -88,6 +88,7 @@ func (r *Runtime) pluginsLoaded() bool {
 	return true
 }
 
+//nolint TODO: This change would require upstream changes in OPA
 func (r *Runtime) bundlesStatusCallback(status bundle.Status) {
 	errs := status.Errors
 	if status.Code == bundleErrorCode {
@@ -105,6 +106,8 @@ func (r *Runtime) bundlesStatusCallback(status bundle.Status) {
 
 	r.latestState = r.status()
 }
+
+//nolint // hugeParam - the status is heavy 200 bytes, upstream changes might be welcomed
 
 func (r *Runtime) pluginStatusCallback(status map[string]*plugins.Status) {
 	for n, s := range status {
