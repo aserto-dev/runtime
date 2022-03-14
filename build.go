@@ -83,9 +83,12 @@ func (r *Runtime) Build(params *BuildParams, paths []string) error {
 	}
 
 	// generate the bundle verification and signing config
-	bvc, err := buildVerificationConfig(params.PubKey, params.PubKeyID, params.Algorithm, params.Scope, params.ExcludeVerifyFiles)
-	if err != nil {
-		return err
+	var bvc *bundle.VerificationConfig
+	if params.PubKey != "" {
+		bvc, err = buildVerificationConfig(params.PubKey, params.PubKeyID, params.Algorithm, params.Scope, params.ExcludeVerifyFiles)
+		if err != nil {
+			return err
+		}
 	}
 
 	bsc := buildSigningConfig(params.Key, params.Algorithm, params.ClaimsFile)
