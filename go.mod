@@ -5,12 +5,14 @@ go 1.17
 //replace github.com/aserto-dev/go-utils => ../go-utils
 
 require (
+	github.com/aserto-dev/go-grpc v0.8.7
+	github.com/aserto-dev/go-grpc-authz v0.8.0
 	github.com/aserto-dev/go-utils v0.8.1
 	github.com/aserto-dev/mage-loot v0.8.0
 	github.com/fsnotify/fsnotify v1.5.1
 	github.com/google/uuid v1.3.0
 	github.com/google/wire v0.5.0
-	github.com/hashicorp/go-multierror v1.1.0
+	github.com/hashicorp/go-multierror v1.1.1
 	github.com/magefile/mage v1.12.1
 	github.com/mitchellh/copystructure v1.2.0
 	github.com/open-policy-agent/opa v0.37.2
@@ -31,7 +33,8 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/subcommands v1.0.1 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
-	github.com/hashicorp/errwrap v1.0.0 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.1 // indirect
+	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-hclog v1.0.0 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/kyokomi/emoji v2.2.4+incompatible // indirect
@@ -50,12 +53,12 @@ require (
 	github.com/yashtewari/glob-intersection v0.0.0-20180916065949-5c77d914dd0b // indirect
 	go.opentelemetry.io/otel v1.3.0 // indirect
 	go.opentelemetry.io/otel/trace v1.3.0 // indirect
-	golang.org/x/mod v0.5.0 // indirect
+	golang.org/x/mod v0.5.1 // indirect
 	golang.org/x/net v0.0.0-20211216030914-fe4d6282115f // indirect
 	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
-	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba // indirect
+	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11 // indirect
 	golang.org/x/tools v0.1.7 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa // indirect
