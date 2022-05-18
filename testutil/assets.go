@@ -32,3 +32,9 @@ func AssetSimpleBundle() string {
 func AssetBuiltinsBundle() string {
 	return filepath.Join(AssetsDir(), "builtin")
 }
+
+// AssetPartialsBundle returns the path of the partials local bundle directory
+// that contains a test policy specifically for testing partial queries
+func AssetPartialsBundle() string {
+	return filepath.Join(AssetsDir(), "partials")
+}
