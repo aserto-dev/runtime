@@ -67,19 +67,15 @@ func TestRemoteBundle(t *testing.T) {
 		Config: OPAConfig{
 			Services: map[string]interface{}{
 				"acmecorp": map[string]interface{}{
-					"url":                             "https://bundler.eng.aserto.com/790b3ed3-413d-11ec-be40-00bfff9771b6",
+					"url":                             "https://opcr.io",
 					"response_header_timeout_seconds": 5,
-					"credentials": map[string]interface{}{
-						"bearer": map[string]interface{}{
-							"token": "demo",
-						},
-					},
+					"type":                            "oci",
 				},
 			},
 			Bundles: map[string]*bundle.Source{
 				"testbundle": &bundle.Source{
 					Service:  "acmecorp",
-					Resource: "/f6235144-7e79-11ec-8a01-01bfff9771b6/bundle.tar.gz",
+					Resource: "opcr.io/public-test-images/peoplefinder:1.0.0",
 				},
 			},
 		},
