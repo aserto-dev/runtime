@@ -88,3 +88,9 @@ func (s *AsertoStore) DeletePolicy(ctx context.Context, txn storage.Transaction,
 	s.logger.Trace().Str("id", id).Msg("delete-policy")
 	return s.backend.DeletePolicy(ctx, txn, id)
 }
+
+// Truncate must be called within a transaction.
+func (s *AsertoStore) Truncate(ctx context.Context, txn storage.Transaction, params storage.TransactionParams, it storage.Iterator) error {
+	s.logger.Trace().Interface("iterator", it).Msg("truncate")
+	return s.backend.Truncate(ctx, txn, params, it)
+}
