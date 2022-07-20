@@ -243,9 +243,12 @@ func (r *Runtime) GetPolicyRoot(ctx context.Context, path string) (string, error
 		if errX != nil {
 			return errors.Wrap(errX, "error listing policies from storage")
 		}
-
+		if !strings.HasPrefix(path, "/") {
+			path = "/" + path
+		}
 		for _, v := range policiesList {
 			// filter out entries which do not belong to policy
+
 			if !strings.HasPrefix(v, path) {
 				continue
 			}
