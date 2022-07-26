@@ -194,8 +194,9 @@ func (r *Runtime) GetPolicyList(ctx context.Context, id string, fn PathFilterFn)
 
 		for _, v := range policiesList {
 			trimmedPath := strings.TrimPrefix(v, "/")
+			trimmedRequestPath := strings.TrimPrefix(bundle.Path, "/")
 			// filter out entries which do not belong to policy
-			if !strings.HasPrefix(trimmedPath, bundle.Path) {
+			if !strings.HasPrefix(trimmedPath, trimmedRequestPath) {
 				continue
 			}
 
@@ -248,7 +249,8 @@ func (r *Runtime) GetPolicyRoot(ctx context.Context, path string) (string, error
 		for _, v := range policiesList {
 			// filter out entries which do not belong to policy
 			trimmedPath := strings.TrimPrefix(v, "/")
-			if !strings.HasPrefix(trimmedPath, path) {
+			trimmedRequestPath := strings.TrimPrefix(path, "/")
+			if !strings.HasPrefix(trimmedPath, trimmedRequestPath) {
 				continue
 			}
 
