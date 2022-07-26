@@ -191,12 +191,11 @@ func (r *Runtime) GetPolicyList(ctx context.Context, id string, fn PathFilterFn)
 		if errX != nil {
 			return errors.Wrap(errX, "error listing policies from storage")
 		}
-		if !strings.HasPrefix(bundle.Path, "/") {
-			bundle.Path = "/" + bundle.Path
-		}
+
 		for _, v := range policiesList {
+			trimmedPath := strings.TrimPrefix(v, "/")
 			// filter out entries which do not belong to policy
-			if !strings.HasPrefix(v, bundle.Path) {
+			if !strings.HasPrefix(trimmedPath, bundle.Path) {
 				continue
 			}
 
@@ -245,13 +244,11 @@ func (r *Runtime) GetPolicyRoot(ctx context.Context, path string) (string, error
 		if errX != nil {
 			return errors.Wrap(errX, "error listing policies from storage")
 		}
-		if !strings.HasPrefix(path, "/") {
-			path = "/" + path
-		}
+
 		for _, v := range policiesList {
 			// filter out entries which do not belong to policy
-
-			if !strings.HasPrefix(v, path) {
+			trimmedPath := strings.TrimPrefix(v, "/")
+			if !strings.HasPrefix(trimmedPath, path) {
 				continue
 			}
 
