@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/aserto-dev/go-utils/cerr"
+	"github.com/aserto-dev/runtime/cerr"
 	"github.com/hashicorp/go-multierror"
 	"github.com/open-policy-agent/opa/metrics"
 	"github.com/open-policy-agent/opa/plugins"

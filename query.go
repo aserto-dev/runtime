@@ -3,7 +3,7 @@ package runtime
 import (
 	"context"
 
-	"github.com/aserto-dev/go-utils/cerr"
+	"github.com/aserto-dev/runtime/cerr"
 	"github.com/google/uuid"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/metrics"
