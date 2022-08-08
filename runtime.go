@@ -330,6 +330,9 @@ func (r *Runtime) newOPAPluginsManager(ctx context.Context) (*plugins.Manager, e
 		return nil, errors.Wrap(err, "initialization error")
 	}
 
+	// Allow calling registered plugins status listeners
+	go manager.UpdatePluginStatus(discoveryPluginName, nil)
+
 	// TODO: this line is useless because the manager initializes the compiler
 	// during init, and we don't have any control over it.
 	// The compiler creates its own builtins array during its own init(), and
