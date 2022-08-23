@@ -331,7 +331,14 @@ func (r *Runtime) newOPAPluginsManager(ctx context.Context) (*plugins.Manager, e
 	}
 
 	// Allow calling registered plugins status listeners
-	go manager.UpdatePluginStatus(discoveryPluginName, nil)
+	if len(r.latestState.Bundles) == 0 {
+		go manager.UpdatePluginStatus(discoveryPluginName, &plugins.Status{
+			State:   plugins.StateNotReady,
+			Message: "discovery plugin set to not ready",
+		})
+	} else {
+		go manager.UpdatePluginStatus(discoveryPluginName, nil)
+	}
 
 	// TODO: this line is useless because the manager initializes the compiler
 	// during init, and we don't have any control over it.
