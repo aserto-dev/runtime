@@ -85,7 +85,7 @@ func TestRemoteBundle(t *testing.T) {
 	defer cleanup()
 
 	// Act
-	err = r.PluginsManager.Start(context.Background())
+	err = r.Start(context.Background())
 	assert.NoError(err)
 	err = r.WaitForPlugins(context.Background(), time.Second*5)
 	assert.NoError(err)
@@ -126,7 +126,7 @@ func TestFailedRemoteBundle(t *testing.T) {
 	defer cleanup()
 
 	// Act
-	err = r.PluginsManager.Start(context.Background())
+	err = r.Start(context.Background())
 	assert.NoError(err)
 	time.Sleep(time.Second * 1)
 	s := r.Status()

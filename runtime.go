@@ -16,6 +16,7 @@ import (
 	"github.com/open-policy-agent/opa/plugins"
 	bundleplugin "github.com/open-policy-agent/opa/plugins/bundle"
 	"github.com/open-policy-agent/opa/plugins/discovery"
+	opaStatus "github.com/open-policy-agent/opa/plugins/status"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/storage"
 	"github.com/open-policy-agent/opa/storage/inmem"
@@ -29,10 +30,11 @@ import (
 type Runtime struct {
 	Logger          *zerolog.Logger
 	Config          *Config
-	PluginsManager  *plugins.Manager
 	InterQueryCache cache.InterQueryCache
+	Started         bool
 
-	plugins map[string]plugins.Factory
+	pluginsManager *plugins.Manager
+	plugins        map[string]plugins.Factory
 
 	builtins1        map[*rego.Function]rego.Builtin1
 	builtins2        map[*rego.Function]rego.Builtin2
@@ -129,12 +131,12 @@ func newOPARuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts .
 	}
 
 	var err error
-	runtime.PluginsManager, err = runtime.newOPAPluginsManager(ctx)
+	runtime.pluginsManager, err = runtime.newOPAPluginsManager(ctx)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to setup plugin manager")
 	}
 
-	runtime.InterQueryCache = cache.NewInterQueryCache(runtime.PluginsManager.InterQueryBuiltinCacheConfig())
+	runtime.InterQueryCache = cache.NewInterQueryCache(runtime.pluginsManager.InterQueryBuiltinCacheConfig())
 
 	registeredPlugins := map[string]plugins.Factory{}
 
@@ -144,12 +146,15 @@ func newOPARuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts .
 	}
 
 	m := metrics.New()
-	disco, err := discovery.New(runtime.PluginsManager, discovery.Factories(registeredPlugins), discovery.Metrics(m))
+	disco, err := discovery.New(runtime.pluginsManager, discovery.Factories(registeredPlugins), discovery.Metrics(m))
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "config error")
 	}
-
-	runtime.PluginsManager.Register("discovery", disco)
+	runtime.pluginsManager.Register("discovery", disco)
+	err = runtime.registerStatusPlugin([]string{"discovery"})
+	if err != nil {
+		return nil, nil, err
+	}
 
 	if cfg.LocalBundles.Watch {
 		log.Info().Msg("Will start watching local bundles for changes")
@@ -164,9 +169,27 @@ func newOPARuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts .
 
 	return runtime,
 		func() {
-			runtime.PluginsManager.Stop(context.Background())
+			runtime.Stop(ctx)
 		},
 		nil
+}
+
+func (r *Runtime) registerStatusPlugin(pluginNames []string) error {
+	rawconfig, err := r.Config.rawOPAConfig()
+	if err != nil {
+		return errors.Wrap(err, "raw config error")
+	}
+
+	// Cannot pass runtime.PluginsManager.Services() as the discovery service does not respond to POST on /status route
+	statusConfig, err := opaStatus.NewConfigBuilder().WithBytes(rawconfig).
+		WithServices([]string{""}).
+		WithPlugins(pluginNames).Parse()
+	if err != nil {
+		return errors.Wrap(err, "failed to build status service config")
+	}
+	statusPlugin := opaStatus.New(statusConfig, r.pluginsManager)
+	r.pluginsManager.Register("status", statusPlugin)
+	return nil
 }
 
 func (r *Runtime) BuiltinRequirements() (json.RawMessage, error) {
@@ -229,7 +252,6 @@ func (r *Runtime) status() *State {
 	r.pluginStates.Range(func(key, value interface{}) bool {
 		pluginName := key.(string)
 		state := value.(*pluginState)
-
 		if !state.loaded {
 			result.Ready = false
 		}
@@ -330,16 +352,6 @@ func (r *Runtime) newOPAPluginsManager(ctx context.Context) (*plugins.Manager, e
 		return nil, errors.Wrap(err, "initialization error")
 	}
 
-	// Allow calling registered plugins status listeners
-	if len(r.latestState.Bundles) == 0 {
-		go manager.UpdatePluginStatus(discoveryPluginName, &plugins.Status{
-			State:   plugins.StateNotReady,
-			Message: "discovery plugin set to not ready",
-		})
-	} else {
-		go manager.UpdatePluginStatus(discoveryPluginName, nil)
-	}
-
 	// TODO: this line is useless because the manager initializes the compiler
 	// during init, and we don't have any control over it.
 	// The compiler creates its own builtins array during its own init(), and
@@ -394,4 +406,16 @@ func (r *Runtime) loadPaths(paths []string) (map[string]*bundle.Bundle, error) {
 	}
 
 	return result, nil
+}
+
+func (r *Runtime) Start(ctx context.Context) error {
+	r.Started = true
+	return r.pluginsManager.Start(ctx)
+}
+
+func (r *Runtime) Stop(ctx context.Context) {
+	if r.Started {
+		r.pluginsManager.Stop(ctx)
+		r.Started = false
+	}
 }

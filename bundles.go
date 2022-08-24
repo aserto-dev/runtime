@@ -185,9 +185,9 @@ func (r *Runtime) GetPolicyList(ctx context.Context, id string, fn PathFilterFn)
 		return []Policy{}, err
 	}
 
-	err = storage.Txn(ctx, r.PluginsManager.Store, storage.TransactionParams{}, func(txn storage.Transaction) error {
+	err = storage.Txn(ctx, r.pluginsManager.Store, storage.TransactionParams{}, func(txn storage.Transaction) error {
 
-		policiesList, errX := r.PluginsManager.Store.ListPolicies(ctx, txn)
+		policiesList, errX := r.pluginsManager.Store.ListPolicies(ctx, txn)
 		if errX != nil {
 			return errors.Wrap(errX, "error listing policies from storage")
 		}
@@ -200,7 +200,7 @@ func (r *Runtime) GetPolicyList(ctx context.Context, id string, fn PathFilterFn)
 				continue
 			}
 
-			buf, errX := r.PluginsManager.Store.GetPolicy(ctx, txn, v)
+			buf, errX := r.pluginsManager.Store.GetPolicy(ctx, txn, v)
 			if errX != nil {
 				return errors.Wrap(errX, "store.GetPolicy")
 			}
@@ -239,9 +239,9 @@ func (r *Runtime) GetPolicyRoot(ctx context.Context, path string) (string, error
 
 	var policyName string
 
-	err := storage.Txn(ctx, r.PluginsManager.Store, storage.TransactionParams{}, func(txn storage.Transaction) error {
+	err := storage.Txn(ctx, r.pluginsManager.Store, storage.TransactionParams{}, func(txn storage.Transaction) error {
 
-		policiesList, errX := r.PluginsManager.Store.ListPolicies(ctx, txn)
+		policiesList, errX := r.pluginsManager.Store.ListPolicies(ctx, txn)
 		if errX != nil {
 			return errors.Wrap(errX, "error listing policies from storage")
 		}
@@ -254,7 +254,7 @@ func (r *Runtime) GetPolicyRoot(ctx context.Context, path string) (string, error
 				continue
 			}
 
-			buf, errX := r.PluginsManager.Store.GetPolicy(ctx, txn, v)
+			buf, errX := r.pluginsManager.Store.GetPolicy(ctx, txn, v)
 			if errX != nil {
 				return errors.Wrap(errX, "store.GetPolicy")
 			}
@@ -283,8 +283,8 @@ func (r *Runtime) GetPolicyRoot(ctx context.Context, path string) (string, error
 
 // policyExists
 func policyExists(ctx context.Context, r *Runtime, id string) bool {
-	err := storage.Txn(ctx, r.PluginsManager.Store, storage.TransactionParams{}, func(txn storage.Transaction) error {
-		_, err := r.PluginsManager.Store.GetPolicy(ctx, txn, id)
+	err := storage.Txn(ctx, r.pluginsManager.Store, storage.TransactionParams{}, func(txn storage.Transaction) error {
+		_, err := r.pluginsManager.Store.GetPolicy(ctx, txn, id)
 		return err
 	})
 	return err == nil
@@ -309,8 +309,8 @@ func (r *Runtime) GetModule(ctx context.Context, id string) (*api.Module, error)
 func getModule(ctx context.Context, r *Runtime, id string) (*api.Module, error) {
 	mod := &api.Module{}
 
-	err := storage.Txn(ctx, r.PluginsManager.Store, storage.TransactionParams{}, func(txn storage.Transaction) error {
-		policy, err := r.PluginsManager.Store.GetPolicy(ctx, txn, id)
+	err := storage.Txn(ctx, r.pluginsManager.Store, storage.TransactionParams{}, func(txn storage.Transaction) error {
+		policy, err := r.pluginsManager.Store.GetPolicy(ctx, txn, id)
 		if err != nil {
 			return errors.Wrap(err, "failed to get policy")
 		}

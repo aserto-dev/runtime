@@ -10,6 +10,7 @@ import (
 	"github.com/open-policy-agent/opa/plugins"
 	"github.com/open-policy-agent/opa/plugins/bundle"
 	"github.com/open-policy-agent/opa/plugins/discovery"
+	"github.com/open-policy-agent/opa/plugins/status"
 	"github.com/pkg/errors"
 )
 
@@ -17,6 +18,7 @@ const (
 	bundleErrorCode     = "bundle_error"
 	discoveryPluginName = "discovery"
 	bundlePluginName    = "bundle"
+	statusPluginName    = status.Name
 )
 
 type PluginDefinition struct {
@@ -67,17 +69,20 @@ type pluginState struct {
 
 // pluginsLoaded returns true if all plugins have been loaded
 func (r *Runtime) pluginsLoaded() bool {
-	if r.PluginsManager == nil {
+	if r.pluginsManager == nil {
 		return false
 	}
 
-	pluginStates := r.PluginsManager.PluginStatus()
+	pluginStates := r.pluginsManager.PluginStatus()
 	for pluginName, status := range pluginStates {
 		if status == nil || status.State == plugins.StateOK {
 			continue
 		}
 
 		if pluginName == discoveryPluginName && r.Config.Config.Discovery == nil {
+			continue
+		}
+		if pluginName == statusPluginName {
 			continue
 		}
 
@@ -109,10 +114,10 @@ func (r *Runtime) bundlesStatusCallback(status bundle.Status) {
 
 //nolint // hugeParam - the status is heavy 200 bytes, upstream changes might be welcomed
 
-func (r *Runtime) pluginStatusCallback(status map[string]*plugins.Status) {
-	for n, s := range status {
+func (r *Runtime) pluginStatusCallback(statusDetails map[string]*plugins.Status) {
+	for n, s := range statusDetails {
 		if n == bundlePluginName && !r.bundlesCallbackRegistered {
-			plugin := r.PluginsManager.Plugin(bundlePluginName)
+			plugin := r.pluginsManager.Plugin(bundlePluginName)
 			if plugin != nil {
 				bundlePlugin := plugin.(*bundle.Plugin)
 				bundlePlugin.Register("aserto-error-recorder", r.bundlesStatusCallback)
@@ -120,7 +125,7 @@ func (r *Runtime) pluginStatusCallback(status map[string]*plugins.Status) {
 			}
 		}
 		if n == discoveryPluginName && !r.discoveryCallbackRegistered {
-			plugin := r.PluginsManager.Plugin(discoveryPluginName)
+			plugin := r.pluginsManager.Plugin(discoveryPluginName)
 			if plugin != nil {
 				discoveryPlugin := plugin.(*discovery.Discovery)
 				discoveryPlugin.RegisterListener("aserto-error-recorder", r.bundlesStatusCallback)
@@ -133,13 +138,13 @@ func (r *Runtime) pluginStatusCallback(status map[string]*plugins.Status) {
 		}
 		switch s.State {
 		case plugins.StateErr:
-			r.Logger.Trace().Str("runtime-id", r.PluginsManager.ID).Str("plugin", n).Msg("plugin in error state")
+			r.Logger.Trace().Str("runtime-id", r.pluginsManager.ID).Str("plugin", n).Msg("plugin in error state")
 			r.pluginStates.Store(n, &pluginState{err: errors.New("there was an error loading the plugin"), loaded: false})
 		case plugins.StateNotReady:
-			r.Logger.Trace().Str("runtime-id", r.PluginsManager.ID).Str("plugin", n).Msg("plugin not ready")
+			r.Logger.Trace().Str("runtime-id", r.pluginsManager.ID).Str("plugin", n).Msg("plugin not ready")
 			r.pluginStates.Store(n, &pluginState{loaded: false})
 		case plugins.StateOK:
-			r.Logger.Trace().Str("runtime-id", r.PluginsManager.ID).Str("plugin", n).Msg("plugin ready")
+			r.Logger.Trace().Str("runtime-id", r.pluginsManager.ID).Str("plugin", n).Msg("plugin ready")
 			r.pluginStates.Store(n, &pluginState{loaded: true})
 		}
 	}

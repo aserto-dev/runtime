@@ -76,7 +76,7 @@ func (r *Runtime) execQuery(ctx context.Context, txn storage.Transaction, decisi
 
 	opts := r.builtins
 
-	compiler := r.PluginsManager.GetCompiler()
+	compiler := r.pluginsManager.GetCompiler()
 
 	opts = append(opts,
 		rego.Store(r.storage),
@@ -87,14 +87,14 @@ func (r *Runtime) execQuery(ctx context.Context, txn storage.Transaction, decisi
 		rego.Instrument(includeInstrumentation),
 		rego.QueryTracer(buf),
 		rego.Trace(true),
-		rego.Runtime(r.PluginsManager.Info),
+		rego.Runtime(r.pluginsManager.Info),
 		rego.UnsafeBuiltins(unsafeBuiltinsMap),
 		rego.InterQueryBuiltinCache(r.InterQueryCache),
 		rego.Input(input),
 		rego.Imports(r.imports),
 	)
 
-	for _, r := range r.PluginsManager.GetWasmResolvers() {
+	for _, r := range r.pluginsManager.GetWasmResolvers() {
 		for _, entrypoint := range r.Entrypoints() {
 			opts = append(opts, rego.Resolver(entrypoint, r))
 		}
