@@ -175,6 +175,11 @@ func newOPARuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts .
 }
 
 func (r *Runtime) registerStatusPlugin(pluginNames []string) error {
+	if !r.Config.Flags.EnableStatusPlugin {
+		r.Logger.Debug().Msg("status plugin not registered")
+		return nil
+	}
+	r.Logger.Debug().Msg("registering status plugin")
 	rawconfig, err := r.Config.rawOPAConfig()
 	if err != nil {
 		return errors.Wrap(err, "raw config error")

@@ -19,7 +19,12 @@ type Config struct {
 	PluginsErrorLimit             int                `json:"plugins_error_limit"`
 	GracefulShutdownPeriodSeconds int                `json:"graceful_shutdown_period_seconds"`
 	MaxPluginWaitTimeSeconds      int                `json:"max_plugin_wait_time_seconds"`
+	Flags                         Flags              `json:"flags"`
 	Config                        OPAConfig          `json:"config"`
+}
+
+type Flags struct {
+	EnableStatusPlugin bool `json:"enable_status_plugin"`
 }
 
 func (c *Config) rawOPAConfig() ([]byte, error) {
