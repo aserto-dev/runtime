@@ -74,7 +74,7 @@ func (c *QueryXCmd) Run() error {
 	}
 	defer cleanup()
 
-	err = r.PluginsManager.Start(ctx)
+	err = r.Start(ctx)
 	if err != nil {
 		return errors.Wrap(err, "failed to start plugin manager")
 	}
@@ -95,7 +95,7 @@ func (c *QueryXCmd) Run() error {
 		return errors.Wrap(err, "query error")
 	}
 
-	decisionLogger, err := decision_log.Lookup(r.PluginsManager)
+	decisionLogger, err := decision_log.Lookup(r.GetPluginsManager())
 	if err != nil {
 		return errors.Wrap(err, "decision logger lookup failed")
 	}
