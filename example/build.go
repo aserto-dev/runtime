@@ -37,7 +37,7 @@ func (c *BuildCmd) Run() error {
 	}
 	defer cleanup()
 
-	return r.Build(runtime.BuildParams{
+	return r.Build(&runtime.BuildParams{
 		OutputFile: c.Output,
 	}, c.Path)
 }

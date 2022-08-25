@@ -408,14 +408,21 @@ func (r *Runtime) loadPaths(paths []string) (map[string]*bundle.Bundle, error) {
 	return result, nil
 }
 
+// Start - triggers plugin manager to start all plugins
 func (r *Runtime) Start(ctx context.Context) error {
 	r.Started = true
 	return r.pluginsManager.Start(ctx)
 }
 
+// Stop - triggers plugin manager to stop all plugins
 func (r *Runtime) Stop(ctx context.Context) {
 	if r.Started {
 		r.pluginsManager.Stop(ctx)
 		r.Started = false
 	}
+}
+
+// GetPluginsManager returns the runtime plugin manager
+func (r *Runtime) GetPluginsManager() *plugins.Manager {
+	return r.pluginsManager
 }
