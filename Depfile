@@ -5,4 +5,4 @@ go:
     version: "v1.7.0"
   golangci-lint:
     importPath: "github.com/golangci/golangci-lint/cmd/golangci-lint"
-    version: "v1.44.0"
+    version: "v1.46.2"
