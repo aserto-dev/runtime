@@ -3,12 +3,14 @@ package runtime
 import (
 	"context"
 	"encoding/json"
+	"net/http"
 	"os"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/aserto-dev/runtime/logger"
+	"github.com/gorilla/mux"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/bundle"
 	"github.com/open-policy-agent/opa/loader"
@@ -18,6 +20,7 @@ import (
 	"github.com/open-policy-agent/opa/plugins/discovery"
 	opaStatus "github.com/open-policy-agent/opa/plugins/status"
 	"github.com/open-policy-agent/opa/rego"
+	"github.com/open-policy-agent/opa/server"
 	"github.com/open-policy-agent/opa/storage"
 	"github.com/open-policy-agent/opa/storage/inmem"
 	"github.com/open-policy-agent/opa/topdown/cache"
@@ -367,6 +370,18 @@ func (r *Runtime) newOPAPluginsManager(ctx context.Context) (*plugins.Manager, e
 	return manager, nil
 }
 
+// GetOPAServerHandler returns the handler of the OPA server, using a mux.Router as parameter for path prefixing
+// Example: /opa/v1/compile where /opa/ is the path prefix set as router.PathPrefix("/opa/").Subrouter() from a gorilla/mux router
+// If router is nil the server will create a new router on root path
+func (r *Runtime) GetOPAServerHandler(ctx context.Context, router *mux.Router) (http.Handler, error) {
+	s := server.New().WithManager(r.pluginsManager).WithStore(r.storage).WithRouter(router)
+	OPAserver, err := s.Init(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return OPAserver.Handler, nil
+}
+
 // loadPaths reads data and policy from the given paths and returns a set of bundles
 // if paths is not set, paths will be loaded from cfg.LocalBundles.Paths
 func (r *Runtime) loadPaths(paths []string) (map[string]*bundle.Bundle, error) {
@@ -416,6 +431,9 @@ func (r *Runtime) loadPaths(paths []string) (map[string]*bundle.Bundle, error) {
 // Start - triggers plugin manager to start all plugins
 func (r *Runtime) Start(ctx context.Context) error {
 	r.Started = true
+	if len(r.Config.Config.Bundles) > 1 {
+		return errors.New("only one bundle per runtime is allowed")
+	}
 	return r.pluginsManager.Start(ctx)
 }
 
