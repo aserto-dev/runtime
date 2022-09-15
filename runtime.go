@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aserto-dev/go-utils/logger"
+	"github.com/aserto-dev/runtime/logger"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/bundle"
 	"github.com/open-policy-agent/opa/loader"
