@@ -1,0 +1,94 @@
+package runtime
+
+import (
+	"context"
+
+	"github.com/aserto-dev/go-utils/cerr"
+	"github.com/open-policy-agent/opa/ast"
+	"github.com/open-policy-agent/opa/metrics"
+	"github.com/open-policy-agent/opa/rego"
+	"github.com/open-policy-agent/opa/server/types"
+	"github.com/open-policy-agent/opa/topdown"
+	"github.com/pkg/errors"
+)
+
+// Result contains the results of a Compile execution
+type CompileResult struct {
+	Result      *interface{}
+	Metrics     map[string]interface{}
+	Explanation types.TraceV1
+}
+
+// Compile
+func (r *Runtime) Compile(ctx context.Context, qStr string, input map[string]interface{}, unknowns []string, disableInlining []string,
+	pretty, includeMetrics, includeInstrumentation bool, explain types.ExplainModeV1) (*CompileResult, error) {
+
+	m := metrics.New()
+	m.Timer(metrics.ServerHandler).Start()
+
+	txn, err := r.storage.NewTransaction(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create new OPA store transaction")
+	}
+
+	defer r.storage.Abort(ctx, txn)
+
+	var buf *topdown.BufferTracer
+	if explain != types.ExplainOffV1 {
+		buf = topdown.NewBufferTracer()
+	}
+
+	m.Timer(metrics.RegoQueryParse).Start()
+	parsedQuery, err := validateQuery(qStr)
+	if err != nil {
+		return nil, cerr.ErrBadQuery.Err(err).Str("query", qStr).Msg(
+			errors.Wrap(err, "failed to validate query").Error())
+	}
+	m.Timer(metrics.RegoQueryParse).Stop()
+
+	eval := rego.New(
+		rego.Compiler(r.GetPluginsManager().GetCompiler()),
+		rego.Store(r.storage),
+		rego.Transaction(txn),
+		rego.ParsedQuery(parsedQuery),
+		rego.Input(input),
+		rego.Unknowns(unknowns),
+		rego.DisableInlining(disableInlining),
+		rego.QueryTracer(buf),
+		rego.Instrument(includeInstrumentation),
+		rego.Metrics(m),
+		rego.Runtime(r.pluginsManager.Info),
+		rego.UnsafeBuiltins(unsafeBuiltinsMap),
+		rego.InterQueryBuiltinCache(r.InterQueryCache),
+	)
+
+	pq, err := eval.Partial(ctx)
+	if err != nil {
+		switch err := err.(type) {
+		case ast.Errors:
+			return nil, errors.Wrap(err, "ast error")
+		default:
+			return nil, err
+		}
+	}
+
+	m.Timer(metrics.ServerHandler).Stop()
+
+	result := &CompileResult{}
+
+	if includeMetrics || includeInstrumentation {
+		result.Metrics = m.All()
+	}
+
+	if explain != types.ExplainOffV1 {
+		result.Explanation = r.getExplainResponse(explain, *buf, pretty)
+	}
+
+	var i interface{} = types.PartialEvaluationResultV1{
+		Queries: pq.Queries,
+		Support: pq.Support,
+	}
+
+	result.Result = &i
+	return result, nil
+}
