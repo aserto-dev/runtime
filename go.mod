@@ -7,7 +7,6 @@ go 1.17
 require (
 	github.com/aserto-dev/go-grpc v0.8.7
 	github.com/aserto-dev/go-grpc-authz v0.8.0
-	github.com/aserto-dev/go-utils v0.8.1
 	github.com/aserto-dev/mage-loot v0.8.9
 	github.com/fsnotify/fsnotify v1.5.4
 	github.com/google/uuid v1.3.0
@@ -75,6 +74,7 @@ require (
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20200313005456-10cdbea86bc0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
+	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spf13/afero v1.8.2 // indirect
 	github.com/spf13/cast v1.5.0 // indirect

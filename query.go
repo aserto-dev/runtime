@@ -3,7 +3,6 @@ package runtime
 import (
 	"context"
 
-	"github.com/aserto-dev/go-utils/cerr"
 	"github.com/google/uuid"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/metrics"
@@ -33,10 +32,9 @@ func (r *Runtime) Query(ctx context.Context, qStr string, input map[string]inter
 
 	decisionID := uuid.New().String()
 
-	parsedQuery, err := validateQuery(qStr)
+	parsedQuery, err := r.ValidateQuery(qStr)
 	if err != nil {
-		return nil, cerr.ErrBadQuery.Err(err).Str("query", qStr).Msg(
-			errors.Wrap(err, "failed to validate query").Error())
+		return nil, errors.Wrap(err, "failed to validate query")
 	}
 
 	txn, err := r.storage.NewTransaction(ctx)
@@ -48,17 +46,13 @@ func (r *Runtime) Query(ctx context.Context, qStr string, input map[string]inter
 
 	results, err := r.execQuery(ctx, txn, decisionID, parsedQuery, input, m, explain, includeMetrics, includeInstrumentation, pretty)
 	if err != nil {
-		return nil, cerr.ErrQueryExecutionFailed.
-			Str("decision-id", decisionID).
-			Str("query", qStr).
-			Err(err).
-			Msg(errors.Wrap(err, "query execution failed").Error())
+		return nil, errors.Wrapf(err, "query execution failed, decision-id: [%s], query: [%s]", decisionID, qStr)
 	}
 
 	return results, nil
 }
 
-func validateQuery(query string) (ast.Body, error) {
+func (r *Runtime) ValidateQuery(query string) (ast.Body, error) {
 	var body ast.Body
 	body, err := ast.ParseBody(query)
 	if err != nil {

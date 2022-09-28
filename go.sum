@@ -62,8 +62,6 @@ github.com/aserto-dev/go-grpc v0.8.7 h1:oFImePhUyo1ppxQ1wexBhPQO4mABGOMxzwYaCAfs
 github.com/aserto-dev/go-grpc v0.8.7/go.mod h1:hog+zu5jE3+Y6t7m5PIBlavosmbd2qdF0BGZ9ueWK74=
 github.com/aserto-dev/go-grpc-authz v0.8.0 h1:D/D/DJAWdshIIF6BYFKT9ILh0/ClAGrb64zpsGP8vuQ=
 github.com/aserto-dev/go-grpc-authz v0.8.0/go.mod h1:ssdQrzxQf+IZ+jy8ATz9S6Ys+nqsTMZyKmPpdj0kwHo=
-github.com/aserto-dev/go-utils v0.8.1 h1:kszsBTJGuucyF3sSkjKW+nSGenfsEnHv/+/yBMH5vr4=
-github.com/aserto-dev/go-utils v0.8.1/go.mod h1:8tzJEW5QlCi0tANoqSaYgB4gOgk6qoREOPERr3takq0=
 github.com/aserto-dev/mage-loot v0.8.9 h1:gwr9zB2CrFPH4gkqtNE/+JmpdeYlUbgI0egFpMcIUio=
 github.com/aserto-dev/mage-loot v0.8.9/go.mod h1:16Q5Iq1e+W8J0DuCJx2LI0u7Bf7C3Z1r8ywnJZbhBGQ=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
@@ -375,6 +373,7 @@ github.com/rs/xid v1.4.0/go.mod h1:trrq9SKmegXys3aeAKXMUTdJsYXVwGY3RLcfgqegfbg=
 github.com/rs/zerolog v1.28.0 h1:MirSo27VyNi7RJYP3078AA1+Cyzd2GB66qy3aUHvsWY=
 github.com/rs/zerolog v1.28.0/go.mod h1:NILgTygv/Uej1ra5XxGf82ZFSLk58MFGAUS2o6usyD0=
 github.com/sergi/go-diff v1.2.0 h1:XU+rvMAioB0UC3q1MFrIQy4Vo5/4VsRDQQXHsEya6xQ=
+github.com/sergi/go-diff v1.2.0/go.mod h1:STckp+ISIX8hZLjrqAeVduY0gWCT9IjLuqbuNXdaHfM=
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=
 github.com/sirupsen/logrus v1.6.0/go.mod h1:7uNnSEd1DgxDLC74fIahvMZmmYsHGZGEOFrfsX/uA88=

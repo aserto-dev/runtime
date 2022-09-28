@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/aserto-dev/go-utils/cerr"
 	"github.com/hashicorp/go-multierror"
 	"github.com/open-policy-agent/opa/metrics"
 	"github.com/open-policy-agent/opa/plugins"
@@ -42,11 +41,11 @@ func (r *Runtime) WaitForPlugins(timeoutCtx context.Context, maxWaitTime time.Du
 			errs = append(errs, s.Bundles[i].Errors...)
 		}
 		if len(errs) > 0 {
-			return cerr.ErrBadRuntime.Err(multierror.Append(nil, errs...))
+			return errors.Wrap(multierror.Append(nil, errs...), "error loading plugins")
 		}
 
 		if timeoutCtx.Err() != nil {
-			return cerr.ErrRuntimeLoading.Err(timeoutCtx.Err()).Msg("timeout while waiting for runtime to load")
+			return errors.Wrap(timeoutCtx.Err(), "timeout while waiting for runtime to load")
 		}
 
 		time.Sleep(10 * time.Millisecond)

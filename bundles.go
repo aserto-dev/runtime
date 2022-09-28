@@ -10,7 +10,6 @@ import (
 
 	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 	api "github.com/aserto-dev/go-grpc/aserto/authorizer/policy/v1"
-	"github.com/aserto-dev/go-utils/cerr"
 	"github.com/google/uuid"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/server/types"
@@ -88,7 +87,7 @@ func (r *Runtime) GetBundleByID(ctx context.Context, id string) (*Bundle, error)
 		}
 	}
 
-	return &Bundle{}, cerr.ErrPolicyNotFound.Msg(fmt.Sprintf("bundle for policy id not found [%s]", id))
+	return &Bundle{}, errors.Errorf("bundle for policy id not found [%s]", id)
 }
 
 func calcID(v string) string {
@@ -294,7 +293,7 @@ func (r *Runtime) GetModule(ctx context.Context, id string) (*api.Module, error)
 	pid := decID(id)
 
 	if !policyExists(ctx, r, pid) {
-		return &api.Module{}, cerr.ErrPolicyNotFound.Msg(fmt.Sprintf("policy not found [%s]", pid))
+		return &api.Module{}, errors.Errorf("policy not found [%s]", pid)
 	}
 
 	module, err := getModule(ctx, r, pid)
