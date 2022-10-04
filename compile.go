@@ -3,7 +3,6 @@ package runtime
 import (
 	"context"
 
-	"github.com/aserto-dev/go-utils/cerr"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/metrics"
 	"github.com/open-policy-agent/opa/rego"
@@ -39,10 +38,9 @@ func (r *Runtime) Compile(ctx context.Context, qStr string, input map[string]int
 	}
 
 	m.Timer(metrics.RegoQueryParse).Start()
-	parsedQuery, err := validateQuery(qStr)
+	parsedQuery, err := r.ValidateQuery(qStr)
 	if err != nil {
-		return nil, cerr.ErrBadQuery.Err(err).Str("query", qStr).Msg(
-			errors.Wrap(err, "failed to validate query").Error())
+		return nil, errors.Wrap(err, "failed to validate query")
 	}
 	m.Timer(metrics.RegoQueryParse).Stop()
 
