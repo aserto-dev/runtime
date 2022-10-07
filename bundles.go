@@ -60,7 +60,7 @@ func getBundles(ctx context.Context, r *Runtime) ([]*Bundle, error) {
 
 		id := calcID(v)
 
-		name, err := r.GetPolicyRoot(ctx, path)
+		name, err := r.GetPolicyRootForPath(ctx, path)
 		if err != nil {
 			return []*Bundle{}, errors.Wrapf(err, "get policy name")
 		}
@@ -233,8 +233,39 @@ func (r *Runtime) GetPolicyList(ctx context.Context, id string, fn PathFilterFn)
 	return policyList, nil
 }
 
-// GetPolicyRoot returns the package root name from the policy list (not from the .manifest file).
-func (r *Runtime) GetPolicyRoot(ctx context.Context, path string) (string, error) {
+// GetPolicyRoot returns the package root name from the policy list (not from the .manifest file). If no policies exist, it will return an empty string as the policy root.
+func (r *Runtime) GetPolicyRoot(ctx context.Context) (string, error) {
+	var policyRoot string
+	err := storage.Txn(ctx, r.pluginsManager.Store, storage.TransactionParams{}, func(txn storage.Transaction) error {
+		policiesList, err := r.pluginsManager.Store.ListPolicies(ctx, txn)
+		if err != nil {
+			return errors.Wrap(err, "error listing policies from storage")
+		}
+
+		if len(policiesList) == 0 {
+			return nil
+		}
+
+		for _, id := range policiesList {
+			root, err := r.getRootFromPolicyID(ctx, id, txn)
+			if err != nil {
+				return err
+			}
+
+			if root != "" {
+				policyRoot = root
+				break
+			}
+		}
+
+		return nil
+	})
+
+	return policyRoot, err
+}
+
+// GetPolicyRootForPath returns the package root name from the policy list (not from the .manifest file) based on the given path.
+func (r *Runtime) GetPolicyRootForPath(ctx context.Context, path string) (string, error) {
 
 	var policyName string
 
@@ -253,20 +284,13 @@ func (r *Runtime) GetPolicyRoot(ctx context.Context, path string) (string, error
 				continue
 			}
 
-			buf, errX := r.pluginsManager.Store.GetPolicy(ctx, txn, v)
-			if errX != nil {
-				return errors.Wrap(errX, "store.GetPolicy")
+			policyRoot, err := r.getRootFromPolicyID(ctx, v, txn)
+			if err != nil {
+				return err
 			}
 
-			module, errY := ast.ParseModule("", string(buf))
-			if errY != nil {
-				return errors.Wrap(errY, "ast.ParseModule")
-			}
-
-			packageName := strings.TrimPrefix(module.Package.Path.String(), "data.")
-			s := strings.Split(packageName, ".")
-			if len(s) >= 1 {
-				policyName = s[0]
+			if policyRoot != "" {
+				policyName = policyRoot
 				break
 			}
 		}
@@ -278,6 +302,26 @@ func (r *Runtime) GetPolicyRoot(ctx context.Context, path string) (string, error
 	}
 
 	return policyName, nil
+}
+
+func (r *Runtime) getRootFromPolicyID(ctx context.Context, policyID string, txn storage.Transaction) (string, error) {
+	buf, err := r.pluginsManager.Store.GetPolicy(ctx, txn, policyID)
+	if err != nil {
+		return "", errors.Wrap(err, "store.GetPolicy")
+	}
+
+	module, err := ast.ParseModule("", string(buf))
+	if err != nil {
+		return "", errors.Wrap(err, "ast.ParseModule")
+	}
+
+	packageName := strings.TrimPrefix(module.Package.Path.String(), "data.")
+	s := strings.Split(packageName, ".")
+	if len(s) >= 1 {
+		return s[0], nil
+	}
+
+	return "", err
 }
 
 // policyExists
