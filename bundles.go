@@ -159,26 +159,13 @@ func (r *Runtime) GetPolicyList(ctx context.Context, id string, fn PathFilterFn)
 		return policyList, errors.Errorf("path filter is nil")
 	}
 
-	bundle, err := r.GetBundleByID(ctx, id)
-	if err != nil {
-		return []Policy{}, err
-	}
-
-	err = storage.Txn(ctx, r.pluginsManager.Store, storage.TransactionParams{}, func(txn storage.Transaction) error {
-
+	err := storage.Txn(ctx, r.pluginsManager.Store, storage.TransactionParams{}, func(txn storage.Transaction) error {
 		policiesList, errX := r.pluginsManager.Store.ListPolicies(ctx, txn)
 		if errX != nil {
 			return errors.Wrap(errX, "error listing policies from storage")
 		}
 
 		for _, v := range policiesList {
-			trimmedPath := strings.TrimPrefix(v, "/")
-			trimmedRequestPath := strings.TrimPrefix(bundle.Path, "/")
-			// filter out entries which do not belong to policy
-			if !strings.HasPrefix(trimmedPath, trimmedRequestPath) {
-				continue
-			}
-
 			buf, errX := r.pluginsManager.Store.GetPolicy(ctx, txn, v)
 			if errX != nil {
 				return errors.Wrap(errX, "store.GetPolicy")
