@@ -70,6 +70,11 @@ func TestRemoteBundle(t *testing.T) {
 					"url":                             "https://opcr.io",
 					"response_header_timeout_seconds": 5,
 					"type":                            "oci",
+					"credentials": map[string]interface{}{
+						"bearer": map[string]interface{}{
+							"token": "iDog",
+						},
+					},
 				},
 			},
 			Bundles: map[string]*bundle.Source{
