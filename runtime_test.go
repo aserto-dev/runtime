@@ -70,6 +70,11 @@ func TestRemoteBundle(t *testing.T) {
 					"url":                             "https://opcr.io",
 					"response_header_timeout_seconds": 5,
 					"type":                            "oci",
+					"credentials": map[string]interface{}{
+						"bearer": map[string]interface{}{
+							"token": "iDog",
+						},
+					},
 				},
 			},
 			Bundles: map[string]*bundle.Source{
@@ -95,45 +100,4 @@ func TestRemoteBundle(t *testing.T) {
 	assert.True(s.Ready)
 	assert.Equal(0, len(s.Errors))
 	assert.Equal(1, len(s.Bundles))
-}
-
-func TestFailedRemoteBundle(t *testing.T) {
-	// Arrange
-	assert := require.New(t)
-	r, cleanup, err := NewRuntime(context.Background(), &zerolog.Logger{}, &Config{
-		Config: OPAConfig{
-			Services: map[string]interface{}{
-				"acmecorp": map[string]interface{}{
-					"url":                             "https://bundler.eng.aserto.com/6d9fa375-93d3-11eb-a705-002310f5c6bf",
-					"response_header_timeout_seconds": 5,
-					"credentials": map[string]interface{}{
-						"bearer": map[string]interface{}{
-							"token": "demo",
-						},
-					},
-				},
-			},
-			Bundles: map[string]*bundle.Source{
-				"testbundle": &bundle.Source{
-					Service:  "acmecorp",
-					Resource: "/deadbeef/bundle.tar.gz",
-				},
-			},
-		},
-	})
-
-	assert.NoError(err)
-	defer cleanup()
-
-	// Act
-	err = r.Start(context.Background())
-	assert.NoError(err)
-	time.Sleep(time.Second * 1)
-	s := r.Status()
-
-	// Assert
-	assert.False(s.Ready)
-	assert.Equal(0, len(s.Errors))
-	assert.Equal(1, len(s.Bundles))
-	assert.NotEmpty(s.Bundles[0].Errors)
 }
