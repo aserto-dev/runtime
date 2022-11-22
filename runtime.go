@@ -26,7 +26,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// Runtime manages the OPA runtime (plugins, store and info data)
+// Runtime manages the OPA runtime (plugins, store and info data).
 type Runtime struct {
 	Logger          *zerolog.Logger
 	Config          *Config
@@ -70,7 +70,7 @@ type State struct {
 
 var builtinsLock sync.Mutex
 
-// newOPARuntime creates a new OPA Runtime
+// newOPARuntime creates a new OPA Runtime.
 func newOPARuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts ...Option) (*Runtime, func(), error) {
 	newLogger := log.With().Str("component", "runtime").Str("instance-id", cfg.InstanceID).Logger()
 
@@ -185,7 +185,7 @@ func (r *Runtime) registerStatusPlugin(pluginNames []string) error {
 		return errors.Wrap(err, "raw config error")
 	}
 
-	// Cannot pass runtime.PluginsManager.Services() as the discovery service does not respond to POST on /status route
+	// Cannot pass runtime.PluginsManager.Services() as the discovery service does not respond to POST on /status route.
 	statusConfig, err := opaStatus.NewConfigBuilder().WithBytes(rawconfig).
 		WithServices([]string{""}).
 		WithPlugins(pluginNames).Parse()
@@ -297,7 +297,7 @@ func (r *Runtime) status() *State {
 	return result
 }
 
-// newOPAPluginsManager creates a new OPA plugins.Manager
+// newOPAPluginsManager creates a new OPA plugins.Manager.
 func (r *Runtime) newOPAPluginsManager(ctx context.Context) (*plugins.Manager, error) {
 	r.Logger.Info().Msg("creating OPA plugins manager")
 
@@ -362,13 +362,13 @@ func (r *Runtime) newOPAPluginsManager(ctx context.Context) (*plugins.Manager, e
 	// The compiler creates its own builtins array during its own init(), and
 	// afterwards that cannot be changed anymore.
 	// We have to improve this in order to have per runtime builtins.
-	// manager.GetCompiler().WithBuiltins(r.compilerBuiltins)
+	// manager.GetCompiler().WithBuiltins(r.compilerBuiltins).
 
 	return manager, nil
 }
 
 // loadPaths reads data and policy from the given paths and returns a set of bundles
-// if paths is not set, paths will be loaded from cfg.LocalBundles.Paths
+// if paths is not set, paths will be loaded from cfg.LocalBundles.Paths.
 func (r *Runtime) loadPaths(paths []string) (map[string]*bundle.Bundle, error) {
 	if len(paths) == 0 {
 		paths = r.Config.LocalBundles.Paths
@@ -413,13 +413,13 @@ func (r *Runtime) loadPaths(paths []string) (map[string]*bundle.Bundle, error) {
 	return result, nil
 }
 
-// Start - triggers plugin manager to start all plugins
+// Start - triggers plugin manager to start all plugins.
 func (r *Runtime) Start(ctx context.Context) error {
 	r.Started = true
 	return r.pluginsManager.Start(ctx)
 }
 
-// Stop - triggers plugin manager to stop all plugins
+// Stop - triggers plugin manager to stop all plugins.
 func (r *Runtime) Stop(ctx context.Context) {
 	if r.Started {
 		r.pluginsManager.Stop(ctx)
@@ -427,7 +427,7 @@ func (r *Runtime) Stop(ctx context.Context) {
 	}
 }
 
-// GetPluginsManager returns the runtime plugin manager
+// GetPluginsManager returns the runtime plugin manager.
 func (r *Runtime) GetPluginsManager() *plugins.Manager {
 	return r.pluginsManager
 }

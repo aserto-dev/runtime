@@ -8,7 +8,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// AsertoStore implements the OPA storage interface for the Aserto Runtime
+// AsertoStore implements the OPA storage interface for the Aserto Runtime.
 type AsertoStore struct {
 	logger *zerolog.Logger
 	cfg    *Config
@@ -18,7 +18,7 @@ type AsertoStore struct {
 
 var _ storage.Store = &AsertoStore{}
 
-// newAsertoStore creates a new AsertoStore
+// newAsertoStore creates a new AsertoStore.
 func NewAsertoStore(logger *zerolog.Logger, cfg *Config) *AsertoStore {
 	newLogger := logger.With().Str("source", "aserto-storage").Logger()
 	return &AsertoStore{
@@ -59,31 +59,31 @@ func (s *AsertoStore) Abort(ctx context.Context, txn storage.Transaction) {
 	s.backend.Abort(ctx, txn)
 }
 
-// Register registers a trigger with the storage
+// Register registers a trigger with the storage.
 func (s *AsertoStore) Register(ctx context.Context, txn storage.Transaction, config storage.TriggerConfig) (storage.TriggerHandle, error) {
 	s.logger.Trace().Msg("register")
 	return s.backend.Register(ctx, txn, config)
 }
 
-// ListPolicies lists all policies
+// ListPolicies lists all policies.
 func (s *AsertoStore) ListPolicies(ctx context.Context, txn storage.Transaction) ([]string, error) {
 	s.logger.Trace().Msg("list-policies")
 	return s.backend.ListPolicies(ctx, txn)
 }
 
-// GetPolicy gets a policy
+// GetPolicy gets a policy.
 func (s *AsertoStore) GetPolicy(ctx context.Context, txn storage.Transaction, id string) ([]byte, error) {
 	s.logger.Trace().Str("id", id).Msg("get-policy")
 	return s.backend.GetPolicy(ctx, txn, id)
 }
 
-// UpsertPolicy creates a policy, or updates it if it already exists
+// UpsertPolicy creates a policy, or updates it if it already exists.
 func (s *AsertoStore) UpsertPolicy(ctx context.Context, txn storage.Transaction, id string, bs []byte) error {
 	s.logger.Trace().Str("id", id).Msg("upsert-policy")
 	return s.backend.UpsertPolicy(ctx, txn, id, bs)
 }
 
-// DeletePolicy deletes a policy
+// DeletePolicy deletes a policy.
 func (s *AsertoStore) DeletePolicy(ctx context.Context, txn storage.Transaction, id string) error {
 	s.logger.Trace().Str("id", id).Msg("delete-policy")
 	return s.backend.DeletePolicy(ctx, txn, id)

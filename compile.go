@@ -11,14 +11,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Result contains the results of a Compile execution
+// Result contains the results of a Compile execution.
 type CompileResult struct {
 	Result      *interface{}
 	Metrics     map[string]interface{}
 	Explanation types.TraceV1
 }
 
-// Compile
 func (r *Runtime) Compile(ctx context.Context, qStr string, input map[string]interface{}, unknowns []string, disableInlining []string,
 	pretty, includeMetrics, includeInstrumentation bool, explain types.ExplainModeV1) (*CompileResult, error) {
 
