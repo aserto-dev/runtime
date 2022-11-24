@@ -14,10 +14,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-// map of unsafe builtins
+// map of unsafe builtins.
 var unsafeBuiltinsMap = map[string]struct{}{ast.HTTPSend.Name: {}}
 
-// Result contains the results of a Query execution
+// Result contains the results of a Query execution.
 type Result struct {
 	Result      rego.ResultSet
 	Metrics     map[string]interface{}
@@ -26,7 +26,7 @@ type Result struct {
 }
 
 // Query executes a REGO query against the Aserto OPA Runtime
-// explain can be "notes", "full" or "off"
+// explain can be "notes", "full" or "off".
 func (r *Runtime) Query(ctx context.Context, qStr string, input map[string]interface{}, pretty, includeMetrics, includeInstrumentation bool, explain types.ExplainModeV1) (*Result, error) {
 	m := metrics.New()
 
@@ -143,12 +143,19 @@ func (r *Runtime) getExplainResponse(explainMode types.ExplainModeV1, trace []*t
 		if err != nil {
 			break
 		}
+	case types.ExplainDebugV1:
+		var err error
+		explanation, err = types.NewTraceV1(lineage.Debug(trace), pretty)
+		if err != nil {
+			break
+		}
 	case types.ExplainFullV1:
 		var err error
 		explanation, err = types.NewTraceV1(trace, pretty)
 		if err != nil {
 			break
 		}
+	case types.ExplainOffV1:
 	}
 	return explanation
 }

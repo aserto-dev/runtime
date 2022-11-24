@@ -62,7 +62,7 @@ func getBundles(ctx context.Context, r *Runtime) ([]*Bundle, error) {
 	for _, rs := range queryResults.Result {
 		v, ok := rs.Bindings["x"].(string)
 		if !ok {
-			r.Logger.Error().Err(fmt.Errorf("expected binding [x] not found"))
+			r.Logger.Error().Err(fmt.Errorf("expected binding [x] not found")) //nolint:goerr113
 			continue
 		}
 
@@ -126,7 +126,7 @@ func (r *Runtime) GetPolicies(ctx context.Context, id string) ([]*PolicyItem, er
 		)
 	}
 
-	// sort policies by their name
+	// sort policies by their name.
 	sort.Slice(policies, func(i, j int) bool {
 		return policies[i].Name < policies[j].Name
 	})
@@ -244,7 +244,7 @@ func (r *Runtime) GetPolicyRootForPath(ctx context.Context, path string) (string
 		}
 
 		for _, v := range policiesList {
-			// filter out entries which do not belong to policy
+			// filter out entries which do not belong to policy.
 			trimmedPath := strings.TrimPrefix(v, "/")
 			trimmedRequestPath := strings.TrimPrefix(path, "/")
 			if !strings.HasPrefix(trimmedPath, trimmedRequestPath) {
@@ -291,7 +291,6 @@ func (r *Runtime) getRootFromPolicyID(ctx context.Context, policyID string, txn 
 	return "", err
 }
 
-// policyExists
 func policyExists(ctx context.Context, r *Runtime, id string) bool {
 	err := storage.Txn(ctx, r.pluginsManager.Store, storage.TransactionParams{}, func(txn storage.Transaction) error {
 		_, err := r.pluginsManager.Store.GetPolicy(ctx, txn, id)
@@ -315,7 +314,6 @@ func (r *Runtime) GetModule(ctx context.Context, id string) (*Module, error) {
 	return module, nil
 }
 
-// getModule
 func getModule(ctx context.Context, r *Runtime, id string) (*Module, error) {
 	mod := &Module{}
 
@@ -348,7 +346,7 @@ func getModule(ctx context.Context, r *Runtime, id string) (*Module, error) {
 	return mod, err
 }
 
-// decID decode policy ID (base64 -> string)
+// decID decode policy ID (base64 -> string).
 func decID(id string) string {
 	b, err := base64.URLEncoding.DecodeString(id)
 	if err != nil {
@@ -357,7 +355,7 @@ func decID(id string) string {
 	return string(b)
 }
 
-// encID encode policy ID (string -> base64)
+// encID encode policy ID (string -> base64).
 func encID(id string) string {
 	return base64.URLEncoding.EncodeToString([]byte(id))
 }

@@ -25,7 +25,7 @@ type PluginDefinition struct {
 	Factory plugins.Factory
 }
 
-// WaitForPlugins waits for all plugins to be ready
+// WaitForPlugins waits for all plugins to be ready.
 func (r *Runtime) WaitForPlugins(timeoutCtx context.Context, maxWaitTime time.Duration) error {
 	timeoutCtx, cancel := context.WithTimeout(timeoutCtx, maxWaitTime)
 	defer cancel()
@@ -66,7 +66,7 @@ type pluginState struct {
 	loaded bool
 }
 
-// pluginsLoaded returns true if all plugins have been loaded
+// pluginsLoaded returns true if all plugins have been loaded.
 func (r *Runtime) pluginsLoaded() bool {
 	if r.pluginsManager == nil {
 		return false
@@ -142,6 +142,9 @@ func (r *Runtime) pluginStatusCallback(statusDetails map[string]*plugins.Status)
 		case plugins.StateNotReady:
 			r.Logger.Trace().Str("runtime-id", r.pluginsManager.ID).Str("plugin", n).Msg("plugin not ready")
 			r.pluginStates.Store(n, &pluginState{loaded: false})
+		case plugins.StateWarn:
+			r.Logger.Trace().Str("runtime-id", r.pluginsManager.ID).Str("plugin", n).Msg("plugin in warning state")
+			r.pluginStates.Store(n, &pluginState{loaded: true})
 		case plugins.StateOK:
 			r.Logger.Trace().Str("runtime-id", r.pluginsManager.ID).Str("plugin", n).Msg("plugin ready")
 			r.pluginStates.Store(n, &pluginState{loaded: true})

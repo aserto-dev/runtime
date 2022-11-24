@@ -53,7 +53,7 @@ func (l *OpaLogger) GetFields() map[string]interface{} {
 }
 
 func (l *OpaLogger) GetLevel() logging.Level {
-	switch l.logger.GetLevel() {
+	switch l.logger.GetLevel() { //nolint:exhaustive
 	case zerolog.DebugLevel:
 		return logging.Debug
 	case zerolog.InfoLevel:

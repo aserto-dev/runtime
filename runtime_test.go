@@ -1,10 +1,11 @@
-package runtime
+package runtime_test
 
 import (
 	"context"
 	"testing"
 	"time"
 
+	runtime "github.com/aserto-dev/runtime"
 	"github.com/aserto-dev/runtime/testutil"
 	"github.com/open-policy-agent/opa/plugins/bundle"
 	"github.com/rs/zerolog"
@@ -14,7 +15,7 @@ import (
 func TestEmptyRuntime(t *testing.T) {
 	// Arrange
 	assert := require.New(t)
-	r, cleanup, err := NewRuntime(context.Background(), &zerolog.Logger{}, &Config{})
+	r, cleanup, err := runtime.NewRuntime(context.Background(), &zerolog.Logger{}, &runtime.Config{})
 	assert.NoError(err)
 	defer cleanup()
 
@@ -28,8 +29,8 @@ func TestEmptyRuntime(t *testing.T) {
 func TestLocalBundle(t *testing.T) {
 	// Arrange
 	assert := require.New(t)
-	r, cleanup, err := NewRuntime(context.Background(), &zerolog.Logger{}, &Config{
-		LocalBundles: LocalBundlesConfig{
+	r, cleanup, err := runtime.NewRuntime(context.Background(), &zerolog.Logger{}, &runtime.Config{
+		LocalBundles: runtime.LocalBundlesConfig{
 			Paths: []string{testutil.AssetSimpleBundle()},
 		},
 	})
@@ -50,8 +51,8 @@ func TestFailingLocalBundle(t *testing.T) {
 	assert := require.New(t)
 
 	// Act
-	_, _, err := NewRuntime(context.Background(), &zerolog.Logger{}, &Config{
-		LocalBundles: LocalBundlesConfig{
+	_, _, err := runtime.NewRuntime(context.Background(), &zerolog.Logger{}, &runtime.Config{
+		LocalBundles: runtime.LocalBundlesConfig{
 			Paths: []string{testutil.AssetBuiltinsBundle()},
 		},
 	})
@@ -63,8 +64,8 @@ func TestFailingLocalBundle(t *testing.T) {
 func TestRemoteBundle(t *testing.T) {
 	// Arrange
 	assert := require.New(t)
-	r, cleanup, err := NewRuntime(context.Background(), &zerolog.Logger{}, &Config{
-		Config: OPAConfig{
+	r, cleanup, err := runtime.NewRuntime(context.Background(), &zerolog.Logger{}, &runtime.Config{
+		Config: runtime.OPAConfig{
 			Services: map[string]interface{}{
 				"acmecorp": map[string]interface{}{
 					"url":                             "https://opcr.io",
@@ -78,7 +79,7 @@ func TestRemoteBundle(t *testing.T) {
 				},
 			},
 			Bundles: map[string]*bundle.Source{
-				"testbundle": &bundle.Source{
+				"testbundle": {
 					Service:  "acmecorp",
 					Resource: "opcr.io/public-test-images/peoplefinder:1.0.0",
 				},

@@ -18,7 +18,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// BuildTargetType represents the type of build target
+// BuildTargetType represents the type of build target.
 type BuildTargetType int
 
 const (
@@ -54,7 +54,7 @@ var buildTargetTypeToString = map[BuildTargetType]string{
 	Wasm: "wasm",
 }
 
-// BuildParams contains all parameters used for doing a build
+// BuildParams contains all parameters used for doing a build.
 type BuildParams struct {
 	CapabilitiesJSONFile string
 	Target               BuildTargetType
@@ -73,7 +73,7 @@ type BuildParams struct {
 	ExcludeVerifyFiles   []string
 }
 
-// Build builds a bundle using the Aserto OPA Runtime
+// Build builds a bundle using the Aserto OPA Runtime.
 func (r *Runtime) Build(params *BuildParams, paths []string) error {
 	buf := bytes.NewBuffer(nil)
 
@@ -82,7 +82,7 @@ func (r *Runtime) Build(params *BuildParams, paths []string) error {
 		return err
 	}
 
-	// generate the bundle verification and signing config
+	// generate the bundle verification and signing config.
 	var bvc *bundle.VerificationConfig
 	if params.PubKey != "" {
 		bvc, err = buildVerificationConfig(params.PubKey, params.PubKeyID, params.Algorithm, params.Scope, params.ExcludeVerifyFiles)
@@ -94,7 +94,7 @@ func (r *Runtime) Build(params *BuildParams, paths []string) error {
 	bsc := buildSigningConfig(params.Key, params.Algorithm, params.ClaimsFile)
 
 	var capabilities *ast.Capabilities
-	// if capabilities are not provided then ast.CapabilitiesForThisVersion must be used
+	// if capabilities are not provided then ast.CapabilitiesForThisVersion must be used.
 	if params.CapabilitiesJSONFile == "" {
 		capabilities = ast.CapabilitiesForThisVersion()
 	} else {
