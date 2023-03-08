@@ -2,6 +2,8 @@ package runtime
 
 import (
 	"context"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -43,10 +45,15 @@ func (r *Runtime) getWatcher(rootPaths []string) (*fsnotify.Watcher, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	for _, path := range watchPaths {
 		r.Logger.Debug().Str("path", path).Msg("watching path")
 		if err := watcher.Add(path); err != nil {
+			return nil, err
+		}
+	}
+	if r.Config.LocalBundles.LocalPolicyImage != "" {
+		err = watcher.Add(filepath.Join(r.Config.LocalBundles.FileStoreRoot, "policies-root", "index.json"))
+		if err != nil {
 			return nil, err
 		}
 	}
@@ -90,6 +97,33 @@ func (r *Runtime) readWatcher(ctx context.Context, watcher *fsnotify.Watcher, pa
 }
 
 func (r *Runtime) processWatcherUpdate(ctx context.Context, paths []string, removed string) error {
+	if r.Config.LocalBundles.LocalPolicyImage != "" {
+		err := storage.Txn(ctx, r.storage, storage.WriteParams, func(txn storage.Transaction) error {
+			deactivatemap := make(map[string]struct{})
+			policies, err := r.storage.ListPolicies(ctx, txn)
+			if err != nil {
+				return err
+			}
+			if len(policies) > 0 {
+				path := strings.Split(policies[0], "/")
+				root := strings.Join(path[:len(path)-3], "/")
+				deactivatemap[root] = struct{}{}
+
+				return bundle.Deactivate(&bundle.DeactivateOpts{
+					Ctx:         ctx,
+					Store:       r.storage,
+					Txn:         txn,
+					BundleNames: deactivatemap,
+				})
+			}
+			return nil
+
+		})
+		if err != nil {
+			return err
+		}
+	}
+
 	loadedBundles, err := r.loadPaths(paths)
 	if err != nil {
 		return err
@@ -97,6 +131,7 @@ func (r *Runtime) processWatcherUpdate(ctx context.Context, paths []string, remo
 	if removed != "" {
 		r.Logger.Debug().Msgf("Removed event name value: %v", removed)
 	}
+
 	return storage.Txn(ctx, r.storage, storage.WriteParams, func(txn storage.Transaction) error {
 		_, err = insertAndCompile(ctx, &insertAndCompileOptions{
 			Store:     r.storage,
