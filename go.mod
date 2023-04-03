@@ -4,6 +4,8 @@ go 1.19
 
 //replace github.com/aserto-dev/go-utils => ../go-utils
 
+replace github.com/spf13/afero => github.com/spf13/afero v1.9.5
+
 require (
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/google/uuid v1.3.0
