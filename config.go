@@ -33,6 +33,8 @@ func (c *Config) rawOPAConfig() ([]byte, error) {
 
 type LocalBundlesConfig struct {
 	Watch              bool                       `json:"watch"`
+	LocalPolicyImage   string                     `json:"local_policy_image"`
+	FileStoreRoot      string                     `json:"file_store_root"`
 	Paths              []string                   `json:"paths"`
 	Ignore             []string                   `json:"ignore"`
 	SkipVerification   bool                       `json:"skip_verification"`

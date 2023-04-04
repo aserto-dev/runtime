@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -24,6 +25,8 @@ import (
 	"github.com/open-policy-agent/opa/version"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
+
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
 // Runtime manages the OPA runtime (plugins, store and info data).
@@ -373,6 +376,13 @@ func (r *Runtime) loadPaths(paths []string) (map[string]*bundle.Bundle, error) {
 	if len(paths) == 0 {
 		paths = r.Config.LocalBundles.Paths
 	}
+	if r.Config.LocalBundles.LocalPolicyImage != "" {
+		tarballpath, err := r.getPolicyTarballPath(r.Config.LocalBundles.LocalPolicyImage)
+		if err != nil {
+			r.Logger.Warn().Err(err).Msg("Could not load configured local policy image")
+		}
+		paths = append(paths, tarballpath)
+	}
 
 	result := make(map[string]*bundle.Bundle, len(paths))
 
@@ -430,4 +440,63 @@ func (r *Runtime) Stop(ctx context.Context) {
 // GetPluginsManager returns the runtime plugin manager.
 func (r *Runtime) GetPluginsManager() *plugins.Manager {
 	return r.pluginsManager
+}
+
+func (r *Runtime) getPolicyTarballPath(policyImageRef string) (string, error) {
+	if r.Config.LocalBundles.FileStoreRoot == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "", errors.Wrap(err, "failed to determine user home directory")
+		}
+		r.Config.LocalBundles.FileStoreRoot = filepath.Join(home, ".policy")
+	}
+
+	// load index.json from root oci path
+	type index struct {
+		Version   int                  `json:"schemaVersion"`
+		Manifests []ocispec.Descriptor `json:"manifests"`
+	}
+
+	var localIndex index
+	indexPath := filepath.Join(r.Config.LocalBundles.FileStoreRoot, "policies-root", "index.json")
+	time.Sleep(1 * time.Second) // wait until index.json is updated
+	indexBytes, err := os.ReadFile(indexPath)
+	if err != nil {
+		return "", err
+	}
+	if len(indexBytes) == 0 {
+		return "", errors.Errorf("empty index.json file")
+	}
+
+	err = json.Unmarshal(indexBytes, &localIndex)
+	if err != nil {
+		return "", err
+	}
+	// load manifest for policyImageRef
+	var search ocispec.Descriptor
+	for _, manifest := range localIndex.Manifests {
+		if strings.Contains(manifest.Annotations[ocispec.AnnotationRefName], policyImageRef) && manifest.MediaType == ocispec.MediaTypeImageLayerGzip {
+			return filepath.Join(r.Config.LocalBundles.FileStoreRoot, "policies-root", "blobs", "sha256", manifest.Digest.Hex()), nil
+		}
+		if strings.Contains(manifest.Annotations[ocispec.AnnotationRefName], policyImageRef) && manifest.MediaType == ocispec.MediaTypeArtifactManifest {
+			search = manifest
+			break
+		}
+	}
+	manifestFile := filepath.Join(r.Config.LocalBundles.FileStoreRoot, "policies-root", "blobs", "sha256", search.Digest.Hex())
+	manifestBytes, err := os.ReadFile(manifestFile)
+	if err != nil {
+		return "", err
+	}
+	var searchedManifest ocispec.Manifest
+	err = json.Unmarshal(manifestBytes, &searchedManifest)
+	if err != nil {
+		return "", err
+	}
+	if len(searchedManifest.Layers) != 1 {
+		return "", errors.New("unknown image type - incorrect number of layers")
+	}
+	tarballPath := filepath.Join(r.Config.LocalBundles.FileStoreRoot, "policies-root", "blobs", "sha256", searchedManifest.Layers[0].Digest.Hex())
+
+	return tarballPath, nil
 }
