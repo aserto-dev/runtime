@@ -68,20 +68,15 @@ func TestRemoteBundle(t *testing.T) {
 		Config: runtime.OPAConfig{
 			Services: map[string]interface{}{
 				"acmecorp": map[string]interface{}{
-					"url":                             "https://opcr.io",
+					"url":                             "https://ghcr.io",
 					"response_header_timeout_seconds": 5,
 					"type":                            "oci",
-					"credentials": map[string]interface{}{
-						"bearer": map[string]interface{}{
-							"token": "iDog",
-						},
-					},
 				},
 			},
 			Bundles: map[string]*bundle.Source{
 				"testbundle": {
 					Service:  "acmecorp",
-					Resource: "opcr.io/public-test-images/peoplefinder:1.0.0",
+					Resource: "ghcr.io/aserto-policies/policy-peoplefinder-rbac:2",
 				},
 			},
 		},
