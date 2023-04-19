@@ -478,11 +478,18 @@ func (r *Runtime) getPolicyTarballPath(policyImageRef string) (string, error) {
 		if strings.Contains(manifest.Annotations[ocispec.AnnotationRefName], policyImageRef) && manifest.MediaType == ocispec.MediaTypeImageLayerGzip {
 			return filepath.Join(r.Config.LocalBundles.FileStoreRoot, "policies-root", "blobs", "sha256", manifest.Digest.Hex()), nil
 		}
-		if strings.Contains(manifest.Annotations[ocispec.AnnotationRefName], policyImageRef) && manifest.MediaType == ocispec.MediaTypeArtifactManifest {
+		if strings.Contains(manifest.Annotations[ocispec.AnnotationRefName], policyImageRef) && manifest.MediaType == ocispec.MediaTypeImageManifest {
 			search = manifest
 			break
 		}
 	}
+
+	if search.Digest == "" {
+		return "", errors.Errorf("could not find policy image %s with a supported media type ('%s' or '%s')",
+			policyImageRef, ocispec.MediaTypeImageManifest, ocispec.MediaTypeImageLayerGzip,
+		)
+	}
+
 	manifestFile := filepath.Join(r.Config.LocalBundles.FileStoreRoot, "policies-root", "blobs", "sha256", search.Digest.Hex())
 	manifestBytes, err := os.ReadFile(manifestFile)
 	if err != nil {
