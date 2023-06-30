@@ -7,7 +7,7 @@ import (
 	"time"
 
 	runtime "github.com/aserto-dev/runtime"
-	"github.com/aserto-dev/verdict/plugins/decision_log"
+	"github.com/aserto-dev/runtime/example/plugins/decision_log"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/types"
