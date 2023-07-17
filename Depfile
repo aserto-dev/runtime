@@ -1,8 +1,11 @@
 ---
 go:
+  wire:
+    importPath: "github.com/google/wire/cmd/wire"
+    version: "v0.5.0"
   gotestsum:
     importPath: "gotest.tools/gotestsum"
-    version: "v1.8.2"
+    version: "v1.10.0"
   golangci-lint:
     importPath: "github.com/golangci/golangci-lint/cmd/golangci-lint"
-    version: "v1.50.1"
+    version: "v1.53.3"
