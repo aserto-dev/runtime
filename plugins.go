@@ -66,12 +66,14 @@ type pluginState struct {
 	loaded bool
 }
 
+var statusCheckCount int = 0
+
 // pluginsLoaded returns true if all plugins have been loaded.
 func (r *Runtime) pluginsLoaded() bool {
 	if r.pluginsManager == nil {
 		return false
 	}
-
+	statusCheckCount++
 	pluginStates := r.pluginsManager.PluginStatus()
 	for pluginName, status := range pluginStates {
 		if status == nil || status.State == plugins.StateOK {
@@ -85,6 +87,13 @@ func (r *Runtime) pluginsLoaded() bool {
 			continue
 		}
 
+		if pluginName == bundlePluginName || status.State == plugins.StateNotReady {
+			// if bundle plugin state is not ready after a reconfiguration, forcefully update plugin state after a couple of checks.
+			if statusCheckCount > 10 {
+				r.pluginsManager.UpdatePluginStatus(pluginName, &plugins.Status{State: plugins.StateOK})
+			}
+		}
+
 		r.Logger.Trace().Str("state", string(status.State)).Str("plugin-name", pluginName).Msg("plugin not ready")
 		return false
 	}
@@ -92,7 +101,7 @@ func (r *Runtime) pluginsLoaded() bool {
 	return true
 }
 
-//nolint TODO: This change would require upstream changes in OPA
+// nolint TODO: This change would require upstream changes in OPA
 func (r *Runtime) bundlesStatusCallback(status bundle.Status) {
 	errs := status.Errors
 	if status.Code == bundleErrorCode {
