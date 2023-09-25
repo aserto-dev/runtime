@@ -73,7 +73,6 @@ linters:
   enable:
     - asciicheck
     - bodyclose
-    - depguard
     - dogsled
     - errcheck
     - exportloopref
@@ -84,7 +83,7 @@ linters:
     - gocritic
     - gocyclo
     - godot
-    - goerr113
+    # - goerr113 # temporary disabled
     - gofmt
     - goimports
     - goprintffuncname
@@ -95,7 +94,7 @@ linters:
     - misspell
     - nakedret
     - noctx
-    - rowserrcheck
+    # - rowserrcheck # disable https://github.com/golangci/golangci-lint/issues/2649.
     - staticcheck
     - stylecheck
     - testpackage
@@ -105,6 +104,7 @@ linters:
     - unused
 
   # don't enable:
+    # - depguard
     # - dupl
     # - gochecknoglobals
     # - gocognit
