@@ -89,7 +89,7 @@ func (r *Runtime) pluginsLoaded() bool {
 			bundles, err := getBundles(context.Background(), r)
 			if err == nil && len(bundles) > 0 {
 				// if bundle plugin state is not ready after a reconfiguration, forcefully update plugin state if bundles are loaded.
-				r.pluginsManager.UpdatePluginStatus(pluginName, &plugins.Status{State: plugins.StateOK})
+				r.pluginsManager.UpdatePluginStatus(bundlePluginName, &plugins.Status{State: plugins.StateOK})
 			}
 		}
 
@@ -115,8 +115,7 @@ func (r *Runtime) bundlesStatusCallback(status bundle.Status) {
 		lastActivation: status.LastSuccessfulActivation,
 		lastDownload:   status.LastSuccessfulDownload,
 	})
-
-	r.latestState = r.status()
+	r.setLatestStatus(r.status())
 }
 
 //nolint // hugeParam - the status is heavy 200 bytes, upstream changes might be welcomed
@@ -159,5 +158,5 @@ func (r *Runtime) pluginStatusCallback(statusDetails map[string]*plugins.Status)
 		}
 	}
 
-	r.latestState = r.status()
+	r.setLatestStatus(r.status())
 }

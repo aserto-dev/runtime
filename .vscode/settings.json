@@ -20,5 +20,6 @@
     "stretchr",
     "TLSCA",
     "Wrapf"
-  ]
+  ],
+  "go.testFlags": ["-race"]
 }
