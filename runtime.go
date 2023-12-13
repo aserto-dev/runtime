@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/aserto-dev/runtime/logger"
@@ -54,7 +55,7 @@ type Runtime struct {
 	discoveryCallbackRegistered bool
 
 	storage     storage.Store
-	latestState *State
+	latestState atomic.Pointer[State]
 }
 
 type BundleState struct {
@@ -92,8 +93,8 @@ func newOPARuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts .
 		pluginStates: &sync.Map{},
 		bundleStates: &sync.Map{},
 		plugins:      map[string]plugins.Factory{},
-		latestState:  &State{},
 	}
+	runtime.latestState.Store(&State{})
 
 	for _, opt := range opts {
 		opt(runtime)
@@ -168,7 +169,7 @@ func newOPARuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts .
 		}
 	}
 
-	runtime.latestState = runtime.status()
+	runtime.latestState.Store(runtime.status())
 
 	return runtime,
 		func() {
@@ -247,7 +248,11 @@ func (r *Runtime) BuiltinRequirements() (json.RawMessage, error) {
 }
 
 func (r *Runtime) Status() *State {
-	return r.latestState
+	return r.latestState.Load()
+}
+
+func (r *Runtime) setLatestStatus(status *State) {
+	r.latestState.Store(status)
 }
 
 func (r *Runtime) status() *State {
