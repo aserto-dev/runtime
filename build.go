@@ -71,6 +71,7 @@ type BuildParams struct {
 	PubKeyID             string
 	ClaimsFile           string
 	ExcludeVerifyFiles   []string
+	RegoV1               bool
 }
 
 // Build builds a bundle using the Aserto OPA Runtime.
@@ -120,6 +121,10 @@ func (r *Runtime) Build(params *BuildParams, paths []string) error {
 		WithRevision(params.Revision).
 		WithBundleVerificationConfig(bvc).
 		WithBundleSigningConfig(bsc)
+
+	if params.RegoV1 {
+		compiler = compiler.WithRegoVersion(ast.RegoV1)
+	}
 
 	if params.ClaimsFile == "" {
 		compiler = compiler.WithBundleVerificationKeyID(params.PubKeyID)
