@@ -71,7 +71,9 @@ func (r *Runtime) pluginsLoaded() bool {
 	if r.pluginsManager == nil {
 		return false
 	}
-
+	// set correct context in getBundles call.
+	timeoutCxt, cancel := context.WithTimeout(context.Background(), time.Duration(r.Config.MaxPluginWaitTimeSeconds))
+	defer cancel()
 	pluginStates := r.pluginsManager.PluginStatus()
 	for pluginName, status := range pluginStates {
 		if status == nil || status.State == plugins.StateOK {
@@ -86,7 +88,7 @@ func (r *Runtime) pluginsLoaded() bool {
 		}
 
 		if pluginName == bundlePluginName || status.State == plugins.StateNotReady {
-			bundles, err := getBundles(context.Background(), r)
+			bundles, err := getBundles(timeoutCxt, r)
 			if err == nil && len(bundles) > 0 {
 				// if bundle plugin state is not ready after a reconfiguration, forcefully update plugin state if bundles are loaded.
 				r.pluginsManager.UpdatePluginStatus(bundlePluginName, &plugins.Status{State: plugins.StateOK})
