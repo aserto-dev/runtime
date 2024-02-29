@@ -106,7 +106,16 @@ func (r *Runtime) processWatcherUpdate(ctx context.Context, paths []string, remo
 			}
 			if len(policies) > 0 {
 				path := strings.Split(policies[0], "/")
-				root := strings.Join(path[:len(path)-3], "/")
+				rootIndex := len(path) - 3 // default bundle root.
+
+				// bundle root detection for build images.
+				for i := range path {
+					if path[i] == "sha256" {
+						rootIndex = i + 2
+						break
+					}
+				}
+				root := strings.Join(path[:rootIndex], "/")
 				deactivatemap[root] = struct{}{}
 
 				return bundle.Deactivate(&bundle.DeactivateOpts{
@@ -115,7 +124,9 @@ func (r *Runtime) processWatcherUpdate(ctx context.Context, paths []string, remo
 					Txn:         txn,
 					BundleNames: deactivatemap,
 				})
+
 			}
+
 			return nil
 
 		})
@@ -128,6 +139,7 @@ func (r *Runtime) processWatcherUpdate(ctx context.Context, paths []string, remo
 	if err != nil {
 		return err
 	}
+
 	if removed != "" {
 		r.Logger.Debug().Msgf("Removed event name value: %v", removed)
 	}
