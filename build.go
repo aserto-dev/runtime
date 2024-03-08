@@ -183,70 +183,75 @@ func buildSigningConfig(key, alg, claimsFile string) *bundle.SigningConfig {
 
 func (r *Runtime) registerFakeBuiltins(defs *fakeBuiltinDefs) {
 	for _, b := range defs.Builtin1 {
+		builtin := b
 		if topdown.GetBuiltin(b.Name) != nil {
 			r.Logger.Info().Str("builtin", b.Name).Msg("Builtin already declared, skipping fake declaration.")
 		}
 
 		rego.RegisterBuiltin1(&rego.Function{
-			Name:    b.Name,
+			Name:    builtin.Name,
 			Memoize: false,
-			Decl:    &b.Decl,
+			Decl:    &builtin.Decl,
 		}, func(rego.BuiltinContext, *ast.Term) (*ast.Term, error) {
 			return nil, nil
 		})
 	}
 
 	for _, b := range defs.Builtin2 {
+		builtin := b
 		if topdown.GetBuiltin(b.Name) != nil {
 			r.Logger.Info().Str("builtin", b.Name).Msg("Builtin already declared, skipping fake declaration.")
 		}
 
 		rego.RegisterBuiltin2(&rego.Function{
-			Name:    b.Name,
+			Name:    builtin.Name,
 			Memoize: false,
-			Decl:    &b.Decl,
+			Decl:    &builtin.Decl,
 		}, func(bctx rego.BuiltinContext, op1, op2 *ast.Term) (*ast.Term, error) {
 			return nil, nil
 		})
 	}
 
 	for _, b := range defs.Builtin3 {
+		builtin := b
 		if topdown.GetBuiltin(b.Name) != nil {
 			r.Logger.Info().Str("builtin", b.Name).Msg("Builtin already declared, skipping fake declaration.")
 		}
 
 		rego.RegisterBuiltin3(&rego.Function{
-			Name:    b.Name,
+			Name:    builtin.Name,
 			Memoize: false,
-			Decl:    &b.Decl,
+			Decl:    &builtin.Decl,
 		}, func(bctx rego.BuiltinContext, op1, op2, op3 *ast.Term) (*ast.Term, error) {
 			return nil, nil
 		})
 	}
 
 	for _, b := range defs.Builtin4 {
+		builtin := b
 		if topdown.GetBuiltin(b.Name) != nil {
 			r.Logger.Info().Str("builtin", b.Name).Msg("Builtin already declared, skipping fake declaration.")
 		}
 
 		rego.RegisterBuiltin4(&rego.Function{
-			Name:    b.Name,
+			Name:    builtin.Name,
 			Memoize: false,
-			Decl:    &b.Decl,
+			Decl:    &builtin.Decl,
 		}, func(bctx rego.BuiltinContext, op1, op2, op3, op4 *ast.Term) (*ast.Term, error) {
 			return nil, nil
 		})
 	}
 
 	for _, b := range defs.BuiltinDyn {
+		builtin := b
 		if topdown.GetBuiltin(b.Name) != nil {
 			r.Logger.Info().Str("builtin", b.Name).Msg("Builtin already declared, skipping fake declaration.")
 		}
 
 		rego.RegisterBuiltinDyn(&rego.Function{
-			Name:    b.Name,
+			Name:    builtin.Name,
 			Memoize: false,
-			Decl:    &b.Decl,
+			Decl:    &builtin.Decl,
 		}, func(bctx rego.BuiltinContext, terms []*ast.Term) (*ast.Term, error) {
 			return nil, nil
 		})
