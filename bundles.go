@@ -12,6 +12,7 @@ import (
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/server/types"
 	"github.com/open-policy-agent/opa/storage"
+	opaTopdown "github.com/open-policy-agent/opa/topdown"
 	"github.com/pkg/errors"
 )
 
@@ -38,6 +39,9 @@ func (r *Runtime) GetBundles(ctx context.Context) ([]*PolicyItem, error) {
 
 	bundles, err := getBundles(ctx, r)
 	if err != nil {
+		if strings.Contains(err.Error(), opaTopdown.CancelErr) {
+			return results, nil
+		}
 		return results, errors.Wrapf(err, "get bundles")
 	}
 
