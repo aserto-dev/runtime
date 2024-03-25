@@ -56,6 +56,7 @@ type Runtime struct {
 
 	storage     storage.Store
 	latestState atomic.Pointer[State]
+	regoVersion ast.RegoVersion
 }
 
 type BundleState struct {
@@ -93,6 +94,7 @@ func newOPARuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts .
 		pluginStates: &sync.Map{},
 		bundleStates: &sync.Map{},
 		plugins:      map[string]plugins.Factory{},
+		regoVersion:  ast.RegoV0,
 	}
 	runtime.latestState.Store(&State{})
 
@@ -354,7 +356,9 @@ func (r *Runtime) newOPAPluginsManager(ctx context.Context) (*plugins.Manager, e
 		plugins.MaxErrors(r.Config.PluginsErrorLimit),
 		plugins.GracefulShutdownPeriod(r.Config.GracefulShutdownPeriodSeconds),
 		plugins.Logger(logger.NewOpaLogger(r.Logger)),
+		plugins.WithParserOptions(ast.ParserOptions{RegoVersion: r.regoVersion}),
 	)
+
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize OPA plugins")
 	}
@@ -399,7 +403,7 @@ func (r *Runtime) loadPaths(paths []string) (map[string]*bundle.Bundle, error) {
 	for _, path := range paths {
 		r.Logger.Info().Str("path", path).Msg("Loading local bundle")
 		result[path], err = loader.NewFileLoader().WithBundleVerificationConfig(verificationConfig).
-			WithSkipBundleVerification(skipVerify).AsBundle(path)
+			WithSkipBundleVerification(skipVerify).WithRegoVersion(r.regoVersion).AsBundle(path)
 
 		if err != nil {
 			errorStatus := bundleplugin.Status{
