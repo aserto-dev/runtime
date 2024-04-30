@@ -15,12 +15,6 @@ func WithPlugin(name string, factory plugins.Factory) Option {
 	}
 }
 
-func WithRegoVersion(version ast.RegoVersion) Option {
-	return func(r *Runtime) {
-		r.regoVersion = version
-	}
-}
-
 func WithBuiltin1(decl *rego.Function, impl rego.Builtin1) Option {
 	return func(r *Runtime) {
 		r.builtins1[decl] = impl
