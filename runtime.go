@@ -355,6 +355,7 @@ func (r *Runtime) newOPAPluginsManager(ctx context.Context) (*plugins.Manager, e
 		plugins.GracefulShutdownPeriod(r.Config.GracefulShutdownPeriodSeconds),
 		plugins.Logger(logger.NewOpaLogger(r.Logger)),
 	)
+
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize OPA plugins")
 	}
