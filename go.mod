@@ -1,6 +1,6 @@
 module github.com/aserto-dev/runtime
 
-go 1.22
+go 1.21
 
 require (
 	github.com/fsnotify/fsnotify v1.7.0
@@ -34,7 +34,6 @@ require (
 	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
-	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/flatbuffers v2.0.8+incompatible // indirect
 	github.com/google/subcommands v1.2.0 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
