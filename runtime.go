@@ -438,8 +438,8 @@ func (r *Runtime) Start(ctx context.Context) error {
 // Stop - triggers plugin manager to stop all plugins.
 func (r *Runtime) Stop(ctx context.Context) {
 	if r.Started {
-		r.pluginsManager.Stop(ctx)
 		r.Started = false
+		r.pluginsManager.Stop(ctx)
 	}
 }
 
