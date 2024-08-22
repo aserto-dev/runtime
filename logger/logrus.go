@@ -3,11 +3,23 @@ package logger
 import (
 	"io"
 
+	"github.com/aserto-dev/logger"
 	"github.com/rs/zerolog"
 	"github.com/sirupsen/logrus" // nolint // we're only using logrus to make sure any packages using it still end up to zerolog
 )
 
-func AddLogrusHook(logger *zerolog.Logger) {
+func NewLogger(logOutput logger.Writer, errorOutput logger.ErrWriter, cfg *logger.Config) (*zerolog.Logger, error) {
+	log, err := logger.NewLogger(logOutput, errorOutput, cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	addLogrusHook(log)
+
+	return log, nil
+}
+
+func addLogrusHook(logger *zerolog.Logger) {
 	logrusLogger := logger.With().Str("log-source", "logrus").Logger()
 	logrus.AddHook(&logrusHook{logger: &logrusLogger})
 	logrus.SetLevel(logrus.TraceLevel)
