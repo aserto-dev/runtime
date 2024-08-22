@@ -19,8 +19,8 @@ func NewLogger(logOutput logger.Writer, errorOutput logger.ErrWriter, cfg *logge
 	return log, nil
 }
 
-func addLogrusHook(logger *zerolog.Logger) {
-	logrusLogger := logger.With().Str("log-source", "logrus").Logger()
+func addLogrusHook(log *zerolog.Logger) {
+	logrusLogger := log.With().Str("log-source", "logrus").Logger()
 	logrus.AddHook(&logrusHook{logger: &logrusLogger})
 	logrus.SetLevel(logrus.TraceLevel)
 	logrus.SetOutput(io.Discard)
