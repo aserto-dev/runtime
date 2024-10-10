@@ -2,6 +2,8 @@ module github.com/aserto-dev/runtime
 
 go 1.21
 
+toolchain go1.23.2
+
 require (
 	github.com/aserto-dev/logger v0.0.6
 	github.com/fsnotify/fsnotify v1.7.0
