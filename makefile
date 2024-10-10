@@ -14,15 +14,17 @@ EXT_DIR            := ./.ext
 EXT_BIN_DIR        := ${EXT_DIR}/bin
 EXT_TMP_DIR        := ${EXT_DIR}/tmp
 
+GO_VER             := 1.23
 GOTESTSUM_VER      := 1.11.0
-GOLANGCI-LINT_VER  := 1.56.2
+GOLANGCI-LINT_VER  := 1.61.0
 WIRE_VER	         := 0.6.0
 
 .DEFAULT_GOAL      := test
 
 .PHONY: deps
-deps: info install-golangci-lint install-gotestsum install-wire 
+deps: info install-golangci-lint install-gotestsum install-wire    
 	@echo -e "$(ATTN_COLOR)==> $@ $(NO_COLOR)"
+	@(go env GOVERSION | grep "go${GO_VER}") || (echo "go version check failed expected go${GO_VER} got $$(go env GOVERSION)"; exit 1)
 
 .PHONY: generate
 generate:
