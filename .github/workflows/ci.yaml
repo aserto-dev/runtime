@@ -1,3 +1,4 @@
+---
 name: ci
 
 on:
@@ -14,7 +15,7 @@ on:
       - main
       - release-*
 env:
-  GO_VERSION: "1.23"  
+  GO_VERSION: "1.23"
   GO_LANGCI_LINT_VERSION: "v1.61.0"
   GO_TESTSUM_VERSION: "1.11.0"
 
@@ -22,18 +23,16 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - 
+      -
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - 
+      -
         name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
       -
         name: Lint
-        uses: golangci/golangci-lint-action@v4
+        uses: golangci/golangci-lint-action@v6
         with:
           version: ${{ env.GO_LANGCI_LINT_VERSION }}
           args: --timeout=10m
@@ -46,7 +45,7 @@ jobs:
         name: Test
         run: |
           gotestsum --format short-verbose -- -count=1 -v -timeout=120s -coverprofile=cover.out -coverpkg=./... ./...
-      - 
+      -
         name: Upload code coverage
         uses: shogo82148/actions-goveralls@v1
         continue-on-error: true
