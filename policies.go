@@ -3,8 +3,8 @@ package runtime
 import (
 	"context"
 
-	"github.com/open-policy-agent/opa/server/types"
-	"github.com/open-policy-agent/opa/storage"
+	"github.com/open-policy-agent/opa/v1/server/types"
+	"github.com/open-policy-agent/opa/v1/storage"
 	"github.com/pkg/errors"
 )
 

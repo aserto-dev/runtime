@@ -11,19 +11,19 @@ import (
 	"time"
 
 	"github.com/aserto-dev/runtime/logger"
-	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/bundle"
-	"github.com/open-policy-agent/opa/loader"
-	"github.com/open-policy-agent/opa/metrics"
-	"github.com/open-policy-agent/opa/plugins"
-	bundleplugin "github.com/open-policy-agent/opa/plugins/bundle"
-	"github.com/open-policy-agent/opa/plugins/discovery"
-	opaStatus "github.com/open-policy-agent/opa/plugins/status"
-	"github.com/open-policy-agent/opa/rego"
-	"github.com/open-policy-agent/opa/storage"
-	"github.com/open-policy-agent/opa/storage/inmem"
-	"github.com/open-policy-agent/opa/topdown/cache"
-	"github.com/open-policy-agent/opa/version"
+	"github.com/open-policy-agent/opa/v1/ast"
+	"github.com/open-policy-agent/opa/v1/bundle"
+	"github.com/open-policy-agent/opa/v1/loader"
+	"github.com/open-policy-agent/opa/v1/metrics"
+	"github.com/open-policy-agent/opa/v1/plugins"
+	bundleplugin "github.com/open-policy-agent/opa/v1/plugins/bundle"
+	"github.com/open-policy-agent/opa/v1/plugins/discovery"
+	opaStatus "github.com/open-policy-agent/opa/v1/plugins/status"
+	"github.com/open-policy-agent/opa/v1/rego"
+	"github.com/open-policy-agent/opa/v1/storage"
+	"github.com/open-policy-agent/opa/v1/storage/inmem"
+	"github.com/open-policy-agent/opa/v1/topdown/cache"
+	"github.com/open-policy-agent/opa/v1/version"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
 
@@ -56,6 +56,7 @@ type Runtime struct {
 
 	storage     storage.Store
 	latestState atomic.Pointer[State]
+	regoVersion ast.RegoVersion
 }
 
 type BundleState struct {
@@ -93,6 +94,7 @@ func newOPARuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts .
 		pluginStates: &sync.Map{},
 		bundleStates: &sync.Map{},
 		plugins:      map[string]plugins.Factory{},
+		regoVersion:  ast.RegoV0,
 	}
 	runtime.latestState.Store(&State{})
 
@@ -352,6 +354,7 @@ func (r *Runtime) newOPAPluginsManager(ctx context.Context) (*plugins.Manager, e
 		plugins.InitBundles(loadedBundles),
 		plugins.Info(ast.NewTerm(info)),
 		plugins.MaxErrors(r.Config.PluginsErrorLimit),
+		plugins.WithParserOptions(ast.ParserOptions{RegoVersion: r.regoVersion}),
 		plugins.GracefulShutdownPeriod(r.Config.GracefulShutdownPeriodSeconds),
 		plugins.Logger(logger.NewOpaLogger(r.Logger)),
 	)
@@ -512,4 +515,9 @@ func (r *Runtime) getPolicyTarballPath(policyImageRef string) (string, error) {
 	tarballPath := filepath.Join(r.Config.LocalBundles.FileStoreRoot, "policies-root", "blobs", "sha256", searchedManifest.Layers[0].Digest.Hex())
 
 	return tarballPath, nil
+}
+
+func (r *Runtime) WithRegoV1() *Runtime {
+	r.regoVersion = ast.RegoV1
+	return r
 }

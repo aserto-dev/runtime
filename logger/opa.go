@@ -3,7 +3,7 @@ package logger
 import (
 	"sync"
 
-	"github.com/open-policy-agent/opa/logging"
+	"github.com/open-policy-agent/opa/v1/logging"
 	"github.com/rs/zerolog"
 )
 
