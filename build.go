@@ -9,12 +9,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/bundle"
-	"github.com/open-policy-agent/opa/compile"
-	"github.com/open-policy-agent/opa/rego"
-	"github.com/open-policy-agent/opa/topdown"
-	"github.com/open-policy-agent/opa/types"
+	"github.com/open-policy-agent/opa/v1/ast"
+	"github.com/open-policy-agent/opa/v1/bundle"
+	"github.com/open-policy-agent/opa/v1/compile"
+	"github.com/open-policy-agent/opa/v1/rego"
+	"github.com/open-policy-agent/opa/v1/topdown"
+	"github.com/open-policy-agent/opa/v1/types"
 	"github.com/pkg/errors"
 )
 
@@ -124,6 +124,8 @@ func (r *Runtime) Build(params *BuildParams, paths []string) error {
 
 	if params.RegoV1 {
 		compiler = compiler.WithRegoVersion(ast.RegoV1)
+	} else {
+		compiler = compiler.WithRegoVersion(ast.RegoV0)
 	}
 
 	if params.ClaimsFile == "" {

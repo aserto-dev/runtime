@@ -3,7 +3,7 @@ package runtime
 import (
 	"os"
 
-	"github.com/open-policy-agent/opa/loader"
+	"github.com/open-policy-agent/opa/v1/loader"
 )
 
 type loaderFilter struct {

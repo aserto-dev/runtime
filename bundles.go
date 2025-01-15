@@ -9,10 +9,10 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/server/types"
-	"github.com/open-policy-agent/opa/storage"
-	opaTopdown "github.com/open-policy-agent/opa/topdown"
+	"github.com/open-policy-agent/opa/v1/ast"
+	"github.com/open-policy-agent/opa/v1/server/types"
+	"github.com/open-policy-agent/opa/v1/storage"
+	opaTopdown "github.com/open-policy-agent/opa/v1/topdown"
 	"github.com/pkg/errors"
 )
 

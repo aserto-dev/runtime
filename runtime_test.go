@@ -7,7 +7,7 @@ import (
 
 	runtime "github.com/aserto-dev/runtime"
 	"github.com/aserto-dev/runtime/testutil"
-	"github.com/open-policy-agent/opa/plugins/bundle"
+	"github.com/open-policy-agent/opa/v1/plugins/bundle"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 )

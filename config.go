@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 
 	"github.com/mitchellh/copystructure"
-	"github.com/open-policy-agent/opa/bundle"
-	"github.com/open-policy-agent/opa/keys"
-	bundleplugin "github.com/open-policy-agent/opa/plugins/bundle"
-	"github.com/open-policy-agent/opa/plugins/discovery"
-	"github.com/open-policy-agent/opa/plugins/logs"
-	"github.com/open-policy-agent/opa/plugins/status"
-	"github.com/open-policy-agent/opa/topdown/cache"
+	"github.com/open-policy-agent/opa/v1/bundle"
+	"github.com/open-policy-agent/opa/v1/keys"
+	bundleplugin "github.com/open-policy-agent/opa/v1/plugins/bundle"
+	"github.com/open-policy-agent/opa/v1/plugins/discovery"
+	"github.com/open-policy-agent/opa/v1/plugins/logs"
+	"github.com/open-policy-agent/opa/v1/plugins/status"
+	"github.com/open-policy-agent/opa/v1/topdown/cache"
 )
 
 type Config struct {
