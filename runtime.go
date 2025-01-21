@@ -173,6 +173,12 @@ func newOPARuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts .
 
 	runtime.latestState.Store(runtime.status())
 
+	defer func() {
+		if r := recover(); r != nil {
+			log.Error().Msgf("panic in opa runtime %v", r)
+		}
+	}()
+
 	return runtime,
 		func() {
 			runtime.Stop(ctx)
@@ -435,11 +441,21 @@ func (r *Runtime) loadPaths(paths []string) (map[string]*bundle.Bundle, error) {
 // Start - triggers plugin manager to start all plugins.
 func (r *Runtime) Start(ctx context.Context) error {
 	r.Started = true
+	defer func() {
+		if rec := recover(); rec != nil {
+			r.Logger.Error().Msgf("panic in opa plugin manager start %v", rec)
+		}
+	}()
 	return r.pluginsManager.Start(ctx)
 }
 
 // Stop - triggers plugin manager to stop all plugins.
 func (r *Runtime) Stop(ctx context.Context) {
+	defer func() {
+		if rec := recover(); rec != nil {
+			r.Logger.Error().Msgf("panic in opa plugin manager stop %v", rec)
+		}
+	}()
 	if r.Started {
 		r.Started = false
 		r.pluginsManager.Stop(ctx)
