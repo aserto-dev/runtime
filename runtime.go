@@ -442,8 +442,8 @@ func (r *Runtime) Start(ctx context.Context) error {
 func (r *Runtime) Stop(ctx context.Context) {
 	if r.Started {
 		r.Started = false
-		r.pluginsManager.Stop(ctx)
 	}
+	r.pluginsManager.Stop(ctx) // stop plugins always.
 }
 
 // GetPluginsManager returns the runtime plugin manager.
