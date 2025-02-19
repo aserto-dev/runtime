@@ -71,6 +71,7 @@ func (r *Runtime) pluginsLoaded() bool {
 	if r.pluginsManager == nil {
 		return false
 	}
+
 	// set correct context in getBundles call.
 	timeoutCxt, cancel := context.WithTimeout(context.Background(), time.Duration(r.Config.MaxPluginWaitTimeSeconds))
 	defer cancel()
@@ -124,20 +125,20 @@ func (r *Runtime) bundlesStatusCallback(status bundle.Status) {
 
 func (r *Runtime) pluginStatusCallback(statusDetails map[string]*plugins.Status) {
 	for n, s := range statusDetails {
-		if n == bundlePluginName && !r.bundlesCallbackRegistered {
+		if n == bundlePluginName && !r.bundlesCallbackRegistered.Load() {
 			plugin := r.pluginsManager.Plugin(bundlePluginName)
 			if plugin != nil {
 				bundlePlugin := plugin.(*bundle.Plugin)
 				bundlePlugin.Register("aserto-error-recorder", r.bundlesStatusCallback)
-				r.bundlesCallbackRegistered = true
+				r.bundlesCallbackRegistered.Store(true)
 			}
 		}
-		if n == discoveryPluginName && !r.discoveryCallbackRegistered {
+		if n == discoveryPluginName && !r.discoveryCallbackRegistered.Load() {
 			plugin := r.pluginsManager.Plugin(discoveryPluginName)
 			if plugin != nil {
 				discoveryPlugin := plugin.(*discovery.Discovery)
 				discoveryPlugin.RegisterListener("aserto-error-recorder", r.bundlesStatusCallback)
-				r.discoveryCallbackRegistered = true
+				r.discoveryCallbackRegistered.Store(true)
 			}
 		}
 

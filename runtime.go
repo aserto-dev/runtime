@@ -51,8 +51,8 @@ type Runtime struct {
 
 	pluginStates                *sync.Map
 	bundleStates                *sync.Map
-	bundlesCallbackRegistered   bool
-	discoveryCallbackRegistered bool
+	bundlesCallbackRegistered   atomic.Bool
+	discoveryCallbackRegistered atomic.Bool
 
 	storage     storage.Store
 	latestState atomic.Pointer[State]
@@ -434,8 +434,12 @@ func (r *Runtime) loadPaths(paths []string) (map[string]*bundle.Bundle, error) {
 
 // Start - triggers plugin manager to start all plugins.
 func (r *Runtime) Start(ctx context.Context) error {
+	err := r.pluginsManager.Start(ctx)
+	if err != nil {
+		return err
+	}
 	r.Started.Store(true)
-	return r.pluginsManager.Start(ctx)
+	return nil
 }
 
 // Stop - triggers plugin manager to stop all plugins.
