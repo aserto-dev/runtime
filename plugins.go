@@ -87,7 +87,7 @@ func (r *Runtime) pluginsLoaded() bool {
 			continue
 		}
 
-		if (pluginName == bundlePluginName || status.State == plugins.StateNotReady) && r.Started {
+		if (pluginName == bundlePluginName || status.State == plugins.StateNotReady) && r.Started.Load() {
 			bundles, err := r.GetBundles(timeoutCxt)
 			if err == nil && len(bundles) > 0 {
 				// if bundle plugin state is not ready after a reconfiguration, forcefully update plugin state if bundles are loaded.
