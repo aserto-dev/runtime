@@ -71,9 +71,7 @@ func (r *Runtime) pluginsLoaded() bool {
 	if r.pluginsManager == nil {
 		return false
 	}
-	// set correct context in getBundles call.
-	timeoutCxt, cancel := context.WithTimeout(context.Background(), time.Duration(r.Config.MaxPluginWaitTimeSeconds))
-	defer cancel()
+
 	pluginStates := r.pluginsManager.PluginStatus()
 	for pluginName, status := range pluginStates {
 		if status == nil || status.State == plugins.StateOK {
@@ -85,14 +83,6 @@ func (r *Runtime) pluginsLoaded() bool {
 		}
 		if pluginName == statusPluginName {
 			continue
-		}
-
-		if (pluginName == bundlePluginName || status.State == plugins.StateNotReady) && r.Started {
-			bundles, err := r.GetBundles(timeoutCxt)
-			if err == nil && len(bundles) > 0 {
-				// if bundle plugin state is not ready after a reconfiguration, forcefully update plugin state if bundles are loaded.
-				r.pluginsManager.UpdatePluginStatus(bundlePluginName, &plugins.Status{State: plugins.StateOK})
-			}
 		}
 
 		r.Logger.Trace().Str("state", string(status.State)).Str("plugin-name", pluginName).Msg("plugin not ready")
@@ -124,20 +114,20 @@ func (r *Runtime) bundlesStatusCallback(status bundle.Status) {
 
 func (r *Runtime) pluginStatusCallback(statusDetails map[string]*plugins.Status) {
 	for n, s := range statusDetails {
-		if n == bundlePluginName && !r.bundlesCallbackRegistered {
+		if n == bundlePluginName && !r.bundlesCallbackRegistered.Load() {
 			plugin := r.pluginsManager.Plugin(bundlePluginName)
 			if plugin != nil {
 				bundlePlugin := plugin.(*bundle.Plugin)
 				bundlePlugin.Register("aserto-error-recorder", r.bundlesStatusCallback)
-				r.bundlesCallbackRegistered = true
+				r.bundlesCallbackRegistered.Store(true)
 			}
 		}
-		if n == discoveryPluginName && !r.discoveryCallbackRegistered {
+		if n == discoveryPluginName && !r.discoveryCallbackRegistered.Load() {
 			plugin := r.pluginsManager.Plugin(discoveryPluginName)
 			if plugin != nil {
 				discoveryPlugin := plugin.(*discovery.Discovery)
 				discoveryPlugin.RegisterListener("aserto-error-recorder", r.bundlesStatusCallback)
-				r.discoveryCallbackRegistered = true
+				r.discoveryCallbackRegistered.Store(true)
 			}
 		}
 

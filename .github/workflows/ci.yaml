@@ -34,6 +34,7 @@ jobs:
         name: Lint
         uses: golangci/golangci-lint-action@v6
         with:
+          verify: false
           version: ${{ env.GO_LANGCI_LINT_VERSION }}
           args: --timeout=10m
       -

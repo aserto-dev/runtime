@@ -35,7 +35,6 @@ type Runtime struct {
 	Logger          *zerolog.Logger
 	Config          *Config
 	InterQueryCache cache.InterQueryCache
-	Started         bool
 
 	pluginsManager *plugins.Manager
 	plugins        map[string]plugins.Factory
@@ -51,8 +50,8 @@ type Runtime struct {
 
 	pluginStates                *sync.Map
 	bundleStates                *sync.Map
-	bundlesCallbackRegistered   bool
-	discoveryCallbackRegistered bool
+	bundlesCallbackRegistered   atomic.Bool
+	discoveryCallbackRegistered atomic.Bool
 
 	storage     storage.Store
 	latestState atomic.Pointer[State]
@@ -434,16 +433,12 @@ func (r *Runtime) loadPaths(paths []string) (map[string]*bundle.Bundle, error) {
 
 // Start - triggers plugin manager to start all plugins.
 func (r *Runtime) Start(ctx context.Context) error {
-	r.Started = true
 	return r.pluginsManager.Start(ctx)
 }
 
 // Stop - triggers plugin manager to stop all plugins.
 func (r *Runtime) Stop(ctx context.Context) {
-	if r.Started {
-		r.Started = false
-		r.pluginsManager.Stop(ctx)
-	}
+	r.pluginsManager.Stop(ctx) // stop plugins always.
 }
 
 // GetPluginsManager returns the runtime plugin manager.
