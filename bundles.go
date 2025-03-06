@@ -3,9 +3,9 @@ package runtime
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 	"hash/adler32"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
@@ -66,7 +66,7 @@ func getBundles(ctx context.Context, r *Runtime) ([]*Bundle, error) {
 	for _, rs := range queryResults.Result {
 		v, ok := rs.Bindings["x"].(string)
 		if !ok {
-			r.Logger.Error().Err(fmt.Errorf("expected binding [x] not found")) //nolint:goerr113
+			r.Logger.Error().Err(errors.New("expected binding [x] not found"))
 			continue
 		}
 
@@ -109,7 +109,7 @@ func calcID(v string) string {
 		return v
 	}
 
-	return fmt.Sprintf("%d", uint64(adler32.Checksum([]byte(v))))
+	return strconv.FormatUint(uint64(adler32.Checksum([]byte(v))), 10)
 }
 
 func (r *Runtime) GetPolicies(ctx context.Context, id string) ([]*PolicyItem, error) {
@@ -196,7 +196,6 @@ func (r *Runtime) GetPolicyList(ctx context.Context, id string, fn PathFilterFn)
 		}
 		return nil
 	})
-
 	if err != nil {
 		return []Policy{}, err
 	}
@@ -237,11 +236,9 @@ func (r *Runtime) GetPolicyRoot(ctx context.Context) (string, error) {
 
 // GetPolicyRootForPath returns the package root name from the policy list (not from the .manifest file) based on the given path.
 func (r *Runtime) GetPolicyRootForPath(ctx context.Context, path string) (string, error) {
-
 	var policyName string
 
 	err := storage.Txn(ctx, r.pluginsManager.Store, storage.TransactionParams{}, func(txn storage.Transaction) error {
-
 		policiesList, errX := r.pluginsManager.Store.ListPolicies(ctx, txn)
 		if errX != nil {
 			return errors.Wrap(errX, "error listing policies from storage")
@@ -267,7 +264,6 @@ func (r *Runtime) GetPolicyRootForPath(ctx context.Context, path string) (string
 		}
 		return nil
 	})
-
 	if err != nil {
 		return "", err
 	}
