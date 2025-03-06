@@ -14,12 +14,12 @@ EXT_DIR            := ./.ext
 EXT_BIN_DIR        := ${EXT_DIR}/bin
 EXT_TMP_DIR        := ${EXT_DIR}/tmp
 
-GO_VER             := 1.23
+GO_VER             := 1.24
 GOTESTSUM_VER      := 1.11.0
-GOLANGCI-LINT_VER  := 1.61.0
+GOLANGCI-LINT_VER  := 1.64.5
 WIRE_VER	         := 0.6.0
 
-.DEFAULT_GOAL      := test
+.DEFAULT_GOAL      := lint
 
 .PHONY: deps
 deps: info install-golangci-lint install-gotestsum install-wire    
@@ -34,6 +34,8 @@ generate:
 .PHONY: lint
 lint:
 	@echo -e "$(ATTN_COLOR)==> $@ $(NO_COLOR)"
+	@${EXT_BIN_DIR}/golangci-lint config path
+	@${EXT_BIN_DIR}/golangci-lint config verify
 	@${EXT_BIN_DIR}/golangci-lint run --config ${PWD}/.golangci.yaml
 
 # github.com/aserto-dev/topaz/pkg/app/tests/$PKGS

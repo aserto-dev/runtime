@@ -8,9 +8,9 @@ import (
 
 	runtime "github.com/aserto-dev/runtime"
 	"github.com/aserto-dev/runtime/example/plugins/decision_log"
-	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/rego"
-	"github.com/open-policy-agent/opa/types"
+	"github.com/open-policy-agent/opa/v1/ast"
+	"github.com/open-policy-agent/opa/v1/rego"
+	"github.com/open-policy-agent/opa/v1/types"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
@@ -68,7 +68,6 @@ func (c *QueryXCmd) Run() error {
 			return nil, nil
 		}),
 	)
-
 	if err != nil {
 		return errors.Wrap(err, "failed to create runtime")
 	}

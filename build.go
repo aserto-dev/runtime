@@ -31,11 +31,13 @@ type fakeBuiltin struct {
 	Decl types.Function `json:"decl"`
 }
 
-type fakeBuiltin1 fakeBuiltin
-type fakeBuiltin2 fakeBuiltin
-type fakeBuiltin3 fakeBuiltin
-type fakeBuiltin4 fakeBuiltin
-type fakeBuiltinDyn fakeBuiltin
+type (
+	fakeBuiltin1   fakeBuiltin
+	fakeBuiltin2   fakeBuiltin
+	fakeBuiltin3   fakeBuiltin
+	fakeBuiltin4   fakeBuiltin
+	fakeBuiltinDyn fakeBuiltin
+)
 
 type fakeBuiltinDefs struct {
 	Builtin1   []fakeBuiltin1   `json:"builtin1,omitempty"`
@@ -103,7 +105,7 @@ func (r *Runtime) Build(params *BuildParams, paths []string) error {
 		if err != nil {
 			return errors.Wrapf(err, "couldn't read capabilities JSON file [%s]", params.CapabilitiesJSONFile)
 		}
-		capabilities, err = ast.LoadCapabilitiesJSON(bytes.NewBufferString(string(capabilitiesJSON)))
+		capabilities, err = ast.LoadCapabilitiesJSON(bytes.NewBuffer(capabilitiesJSON))
 		if err != nil {
 			return errors.Wrapf(err, "failed to load capabilities file [%s]", params.CapabilitiesJSONFile)
 		}
@@ -268,7 +270,6 @@ func fileExists(path string) (bool, error) {
 	} else {
 		return false, errors.Wrapf(err, "failed to stat file '%s'", path)
 	}
-
 }
 
 func (r *Runtime) generateAllFakeBuiltins(paths []string) error {
