@@ -66,7 +66,7 @@ func getBundles(ctx context.Context, r *Runtime) ([]*Bundle, error) {
 	for _, rs := range queryResults.Result {
 		v, ok := rs.Bindings["x"].(string)
 		if !ok {
-			r.Logger.Error().Err(errors.New("expected binding [x] not found"))
+			r.Logger.Error().Msg("expected binding [x] not found")
 			continue
 		}
 
