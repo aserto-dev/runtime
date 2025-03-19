@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/aserto-dev/runtime/logger"
+
 	"github.com/open-policy-agent/opa/v1/ast"
 	"github.com/open-policy-agent/opa/v1/bundle"
 	"github.com/open-policy-agent/opa/v1/loader"
@@ -24,10 +25,9 @@ import (
 	"github.com/open-policy-agent/opa/v1/storage/inmem"
 	"github.com/open-policy-agent/opa/v1/topdown/cache"
 	"github.com/open-policy-agent/opa/v1/version"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
-
-	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
 // Runtime manages the OPA runtime (plugins, store and info data).
@@ -397,7 +397,7 @@ func (r *Runtime) newOPAPluginsManager(ctx context.Context) (*plugins.Manager, e
 		return nil, errors.Wrap(err, "initialization error")
 	}
 
-	// TODO: this line is useless because the manager initializes the compiler
+	// Note: this line is useless because the manager initializes the compiler
 	// during init, and we don't have any control over it.
 	// The compiler creates its own builtins array during its own init(), and
 	// afterwards that cannot be changed anymore.

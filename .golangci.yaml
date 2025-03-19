@@ -2,6 +2,123 @@
 # golangci.com configuration
 # https://github.com/golangci/golangci/wiki/Configuration
 
+linters:
+  # Disable all linters.
+  # Default: false
+  disable-all: true
+  # Enable specific linter
+  # https://golangci-lint.run/usage/linters/#enabled-by-default
+  enable:
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - canonicalheader
+    - containedctx
+    - contextcheck
+    - copyloopvar
+    - cyclop
+    - decorder
+    # - depguard
+    - dogsled
+    - dupl
+    - dupword
+    - durationcheck
+    - err113
+    - errcheck
+    - errchkjson
+    - errname
+    - errorlint
+    - exhaustive
+    # - exhaustruct
+    - exptostd
+    - fatcontext
+    - forbidigo
+    - forcetypeassert
+    - funlen
+    # - gci
+    - ginkgolinter
+    - gocheckcompilerdirectives
+    # - gochecknoglobals # no configuration options
+    - gochecknoinits
+    - gochecksumtype
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - godox
+    - gofmt
+    - gofumpt
+    - goheader
+    - goimports
+    - gomoddirectives
+    - gomodguard
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - gosmopolitan
+    - govet
+    - grouper
+    - iface
+    - importas
+    - inamedparam
+    - ineffassign
+    - interfacebloat
+    - intrange
+    # - ireturn
+    - lll
+    - loggercheck
+    - maintidx
+    - makezero
+    - mirror
+    - misspell
+    - mnd
+    - musttag
+    - nakedret
+    - nestif
+    - nilerr
+    - nilnesserr
+    - nilnil
+    # - nlreturn # redundant with wsl
+    - noctx
+    - nolintlint
+    - nonamedreturns
+    - nosprintfhostport
+    # - paralleltest
+    - perfsprint
+    - prealloc
+    - predeclared
+    - promlinter
+    - protogetter
+    - reassign
+    - recvcheck
+    # - revive
+    - rowserrcheck
+    - sloglint
+    - spancheck
+    - sqlclosecheck
+    - staticcheck
+    - stylecheck
+    - tagalign
+    # - tagliatelle
+    - testableexamples
+    - testifylint
+    - testpackage
+    - thelper
+    - tparallel
+    - unconvert
+    - unparam
+    - unused
+    - usestdlibvars
+    - usetesting
+    # - varnamelen
+    - wastedassign
+    - whitespace
+    # - wrapcheck
+    - wsl
+    - zerologlint
+
 linters-settings:
   cyclop:
     max-complexity: 15
@@ -52,100 +169,6 @@ linters-settings:
     allow-unused: false  # report any unused nolint directives
     require-explanation: false  # don't require an explanation for nolint directives
     require-specific: false  # don't require nolint directives to be specific about which linter is being skipped
-
-linters:
-  # please, do not use `enable-all`: it's deprecated and will be removed soon.
-  # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
-  disable-all: false
-  enable:
-    - asasalint
-    - asciicheck
-    - bidichk
-    - bodyclose
-    - canonicalheader
-    - containedctx
-    - contextcheck
-    - copyloopvar
-    - cyclop
-    - decorder
-    - dogsled
-    - dupword
-    - durationcheck
-    - err113
-    - errchkjson
-    - errname
-    - errorlint
-    - exhaustive
-    - fatcontext
-    - forcetypeassert
-    - funlen
-    - gocheckcompilerdirectives
-    - gochecknoinits
-    # - gochecknoglobals
-    - gochecknoinits
-    - gocognit
-    - goconst
-    - gocritic
-    - gocyclo
-    - godot
-    - gofmt
-    - goimports
-    - goprintffuncname
-    - gosec
-    - gosmopolitan
-    - grouper
-    - importas
-    - inamedparam
-    - interfacebloat
-    - intrange
-    - lll
-    - makezero
-    - mirror
-    - misspell
-    - mnd
-    - musttag
-    - nakedret
-    - nestif
-    - nilerr
-    - nilnil
-    - noctx
-    - nolintlint
-    - nonamedreturns
-    - perfsprint
-    - prealloc
-    - predeclared
-    - reassign
-    - rowserrcheck
-    - stylecheck
-    - testpackage
-    - unconvert
-    - unparam
-    - usestdlibvars
-    - wastedassign
-    - whitespace
-    - wsl
-    - zerologlint
-
-    # don't enable:
-    # - depguard
-    # - dupl
-    # - exhaustruct
-    # - gci
-    # - ginkgolinter
-    # - gochecknoglobals
-    # - gocognit
-    # - godox
-    # - gofumpt
-    # - gomoddirectives
-    # - ireturn
-    # - lll
-    # - nlreturn
-    # - nolintlint # conflict with 1.19 gofmt changes
-    # - protogetter
-    # - prealloc
-    # - revive
-    # - wsl
-    # - wrapcheck
 
 issues:
   exclude-rules:

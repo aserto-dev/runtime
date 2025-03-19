@@ -44,8 +44,8 @@ func TestLocalBundle(t *testing.T) {
 
 	// Assert
 	assert.True(s.Ready)
-	assert.Equal(0, len(s.Errors))
-	assert.Equal(1, len(s.Bundles))
+	assert.Empty(s.Errors)
+	assert.Len(s.Bundles, 1)
 }
 
 func TestFailingLocalBundle(t *testing.T) {
@@ -99,6 +99,6 @@ func TestRemoteBundle(t *testing.T) {
 
 	// Assert
 	assert.True(s.Ready)
-	assert.Equal(0, len(s.Errors))
-	assert.Equal(1, len(s.Bundles))
+	assert.Empty(s.Errors)
+	assert.Len(s.Bundles, 1)
 }
