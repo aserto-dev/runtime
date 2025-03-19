@@ -27,7 +27,13 @@ type Result struct {
 
 // Query executes a REGO query against the Aserto OPA Runtime
 // explain can be "notes", "full" or "off".
-func (r *Runtime) Query(ctx context.Context, qStr string, input map[string]interface{}, pretty, includeMetrics, includeInstrumentation bool, explain types.ExplainModeV1) (*Result, error) {
+func (r *Runtime) Query(
+	ctx context.Context,
+	qStr string,
+	input map[string]interface{},
+	pretty, includeMetrics, includeInstrumentation bool,
+	explain types.ExplainModeV1,
+) (*Result, error) {
 	m := metrics.New()
 
 	decisionID := uuid.New().String()
@@ -54,15 +60,25 @@ func (r *Runtime) Query(ctx context.Context, qStr string, input map[string]inter
 
 func (r *Runtime) ValidateQuery(query string) (ast.Body, error) {
 	var body ast.Body
+
 	body, err := ast.ParseBody(query)
 	if err != nil {
 		return nil, err
 	}
+
 	return body, nil
 }
 
-func (r *Runtime) execQuery(ctx context.Context, txn storage.Transaction, decisionID string, parsedQuery ast.Body, input map[string]interface{}, m metrics.Metrics, explainMode types.ExplainModeV1, includeMetrics, includeInstrumentation, pretty bool) (*Result, error) {
-
+func (r *Runtime) execQuery(
+	ctx context.Context,
+	txn storage.Transaction,
+	decisionID string,
+	parsedQuery ast.Body,
+	input map[string]interface{},
+	m metrics.Metrics,
+	explainMode types.ExplainModeV1,
+	includeMetrics, includeInstrumentation, pretty bool,
+) (*Result, error) {
 	var buf *topdown.BufferTracer
 	if explainMode != types.ExplainOffV1 {
 		buf = topdown.NewBufferTracer()
@@ -129,33 +145,39 @@ func (r *Runtime) execQuery(ctx context.Context, txn storage.Transaction, decisi
 	return results, err
 }
 
-func (r *Runtime) getExplainResponse(explainMode types.ExplainModeV1, trace []*topdown.Event, pretty bool) (explanation types.TraceV1) {
+func (r *Runtime) getExplainResponse(explainMode types.ExplainModeV1, trace []*topdown.Event, pretty bool) types.TraceV1 {
 	switch explainMode {
 	case types.ExplainNotesV1:
-		var err error
-		explanation, err = types.NewTraceV1(lineage.Notes(trace), pretty)
-		if err != nil {
-			break
+		if explanation, err := types.NewTraceV1(lineage.Notes(trace), pretty); err == nil {
+			return explanation
 		}
+
+		return nil
+
 	case types.ExplainFailsV1:
-		var err error
-		explanation, err = types.NewTraceV1(lineage.Fails(trace), pretty)
-		if err != nil {
-			break
+		if explanation, err := types.NewTraceV1(lineage.Fails(trace), pretty); err == nil {
+			return explanation
 		}
+
+		return nil
+
 	case types.ExplainDebugV1:
-		var err error
-		explanation, err = types.NewTraceV1(lineage.Debug(trace), pretty)
-		if err != nil {
-			break
+		if explanation, err := types.NewTraceV1(lineage.Debug(trace), pretty); err == nil {
+			return explanation
 		}
+
+		return nil
+
 	case types.ExplainFullV1:
-		var err error
-		explanation, err = types.NewTraceV1(trace, pretty)
-		if err != nil {
-			break
+		if explanation, err := types.NewTraceV1(trace, pretty); err == nil {
+			return explanation
 		}
+
+		return nil
+
 	case types.ExplainOffV1:
+		return nil
 	}
-	return explanation
+
+	return nil
 }

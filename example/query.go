@@ -38,15 +38,13 @@ func (c *QueryCmd) Run() error {
 			Paths: []string{c.Policy},
 		},
 	})
-
 	if err != nil {
 		return errors.Wrap(err, "failed to create runtime")
 	}
 	defer cleanup()
 
 	input := map[string]interface{}{}
-	err = json.Unmarshal([]byte(c.Input), &input)
-	if err != nil {
+	if err := json.Unmarshal([]byte(c.Input), &input); err != nil {
 		return errors.Wrap(err, "invalid input parameter")
 	}
 

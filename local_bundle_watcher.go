@@ -16,8 +16,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-var versionPath = storage.MustParsePath("/system/version")
-
 func (r *Runtime) onReloadLogger(d time.Duration, err error) {
 	r.Logger.Warn().
 		Dur("duration", d).
@@ -30,12 +28,13 @@ func (r *Runtime) startWatcher(ctx context.Context, paths []string, onReload fun
 	if err != nil {
 		return err
 	}
+
 	go r.readWatcher(ctx, watcher, paths, onReload)
+
 	return nil
 }
 
 func (r *Runtime) getWatcher(rootPaths []string) (*fsnotify.Watcher, error) {
-
 	watchPaths, err := getWatchPaths(rootPaths)
 	if err != nil {
 		return nil, err
@@ -45,15 +44,17 @@ func (r *Runtime) getWatcher(rootPaths []string) (*fsnotify.Watcher, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	for _, path := range watchPaths {
 		r.Logger.Debug().Str("path", path).Msg("watching path")
+
 		if err := watcher.Add(path); err != nil {
 			return nil, err
 		}
 	}
+
 	if r.Config.LocalBundles.LocalPolicyImage != "" {
-		err = watcher.Add(filepath.Join(r.Config.LocalBundles.FileStoreRoot, "policies-root", "index.json"))
-		if err != nil {
+		if err := watcher.Add(filepath.Join(r.Config.LocalBundles.FileStoreRoot, "policies-root", "index.json")); err != nil {
 			return nil, err
 		}
 	}
@@ -65,8 +66,8 @@ func getWatchPaths(rootPaths []string) ([]string, error) {
 	paths := []string{}
 
 	for _, path := range rootPaths {
-
 		_, path = loader.SplitPrefix(path)
+
 		result, err := loader.Paths(path, true)
 		if err != nil {
 			return nil, err
@@ -82,14 +83,18 @@ func (r *Runtime) readWatcher(ctx context.Context, watcher *fsnotify.Watcher, pa
 	for {
 		evt := <-watcher.Events
 		removalMask := (fsnotify.Remove | fsnotify.Rename)
+
 		mask := (fsnotify.Create | fsnotify.Write | removalMask)
 		if (evt.Op & mask) != 0 {
 			r.Logger.Debug().Str("event", evt.String()).Msg("registered file event")
+
 			t0 := time.Now()
 			removed := ""
+
 			if (evt.Op & removalMask) != 0 {
 				removed = evt.Name
 			}
+
 			err := r.processWatcherUpdate(ctx, paths, removed)
 			onReload(time.Since(t0), err)
 		}
@@ -98,39 +103,7 @@ func (r *Runtime) readWatcher(ctx context.Context, watcher *fsnotify.Watcher, pa
 
 func (r *Runtime) processWatcherUpdate(ctx context.Context, paths []string, removed string) error {
 	if r.Config.LocalBundles.LocalPolicyImage != "" {
-		err := storage.Txn(ctx, r.storage, storage.WriteParams, func(txn storage.Transaction) error {
-			deactivatemap := make(map[string]struct{})
-			policies, err := r.storage.ListPolicies(ctx, txn)
-			if err != nil {
-				return err
-			}
-			if len(policies) > 0 {
-				path := strings.Split(policies[0], "/")
-				rootIndex := len(path) - 3 // default bundle root.
-
-				// bundle root detection for build images.
-				for i := range path {
-					if path[i] == "sha256" {
-						rootIndex = i + 2
-						break
-					}
-				}
-				root := strings.Join(path[:rootIndex], "/")
-				deactivatemap[root] = struct{}{}
-
-				return bundle.Deactivate(&bundle.DeactivateOpts{
-					Ctx:         ctx,
-					Store:       r.storage,
-					Txn:         txn,
-					BundleNames: deactivatemap,
-				})
-
-			}
-
-			return nil
-
-		})
-		if err != nil {
+		if err := r.deactivate(ctx); err != nil {
 			return err
 		}
 	}
@@ -159,6 +132,44 @@ func (r *Runtime) processWatcherUpdate(ctx context.Context, paths []string, remo
 	})
 }
 
+func (r *Runtime) deactivate(ctx context.Context) error {
+	err := storage.Txn(ctx, r.storage, storage.WriteParams, func(txn storage.Transaction) error {
+		deactivateMap := make(map[string]struct{})
+
+		policies, err := r.storage.ListPolicies(ctx, txn)
+		if err != nil {
+			return err
+		}
+
+		if len(policies) > 0 {
+			path := strings.Split(policies[0], "/")
+			rootIndex := len(path) - 3 // default bundle root.
+
+			// bundle root detection for build images.
+			for i := range path {
+				if path[i] == "sha256" {
+					rootIndex = i + 2
+					break
+				}
+			}
+
+			root := strings.Join(path[:rootIndex], "/")
+			deactivateMap[root] = struct{}{}
+
+			return bundle.Deactivate(&bundle.DeactivateOpts{
+				Ctx:         ctx,
+				Store:       r.storage,
+				Txn:         txn,
+				BundleNames: deactivateMap,
+			})
+		}
+
+		return nil
+	})
+
+	return err
+}
+
 // insertAndCompileOptions contains input for the operation.
 type insertAndCompileOptions struct {
 	Store     storage.Store
@@ -177,7 +188,6 @@ type insertAndCompileResult struct {
 // insertAndCompile writes data and policy into the store and returns a compiler for the
 // store contents.
 func insertAndCompile(ctx context.Context, opts *insertAndCompileOptions) (*insertAndCompileResult, error) {
-
 	if len(opts.Files.Documents) > 0 {
 		if err := opts.Store.Write(ctx, opts.Txn, storage.AddOp, storage.Path{}, opts.Files.Documents); err != nil {
 			return nil, errors.Wrap(err, "storage error")
@@ -227,6 +237,7 @@ func insertAndCompile(ctx context.Context, opts *insertAndCompileOptions) (*inse
 // writeVersion writes the build version information into storage. This makes the
 // version information available to the REPL and the HTTP server.
 func writeVersion(ctx context.Context, store storage.Store, txn storage.Transaction) error {
+	versionPath := storage.MustParsePath("/system/version")
 
 	if err := storage.MakeDir(ctx, store, txn, versionPath); err != nil {
 		return err

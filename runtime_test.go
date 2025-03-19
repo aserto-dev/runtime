@@ -17,6 +17,7 @@ func TestEmptyRuntime(t *testing.T) {
 	assert := require.New(t)
 	r, cleanup, err := runtime.NewRuntime(context.Background(), &zerolog.Logger{}, &runtime.Config{})
 	assert.NoError(err)
+
 	defer cleanup()
 
 	// Act
@@ -35,6 +36,7 @@ func TestLocalBundle(t *testing.T) {
 		},
 	})
 	assert.NoError(err)
+
 	defer cleanup()
 
 	// Act
@@ -83,13 +85,16 @@ func TestRemoteBundle(t *testing.T) {
 	})
 
 	assert.NoError(err)
+
 	defer cleanup()
 
 	// Act
 	err = r.Start(context.Background())
 	assert.NoError(err)
+
 	err = r.WaitForPlugins(context.Background(), time.Second*5)
 	assert.NoError(err)
+
 	s := r.Status()
 
 	// Assert

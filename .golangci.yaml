@@ -1,214 +1,163 @@
-run:
-  timeout: 5m
-
-issues:
-  max-same-issues: 0 # don't hide issues in CI runs because they are the same type
-  exclude-dirs:
-    - internal/gojsonschema
-    - internal/gqlparser
-    - internal/jwx
-  exclude-rules:
-    - path: ast/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: bundle/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: capabilities/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: compile/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: config/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: cover/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: debug/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: dependencies/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: download/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: format/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: hooks/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: ir/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: keys/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: loader/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: logging/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: metrics/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: plugins/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: profiler/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: refactor/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: repl/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: rego/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: resolver/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: runtime/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: schemas/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: sdk/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: server/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: storage/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: tester/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: topdown/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: tracing/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: types/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: util/
-      linters:
-        - staticcheck
-      text: "SA1019"
-    - path: version/
-      linters:
-        - staticcheck
-      text: "SA1019"
+---
+# golangci.com configuration
+# https://github.com/golangci/golangci/wiki/Configuration
 
 linters-settings:
-  lll:
-    line-length: 200
+  cyclop:
+    max-complexity: 15
+  errorlint:
+    asserts: false
+  funlen:
+    lines: 110
+    statements: 80
+  goconst:
+    min-len: 2
+    min-occurrences: 2
   gocritic:
-    disabled-checks:
-      - appendAssign
-      # NOTE(ae): this one should be enabled, but there were too
-      # many violations to fix in one go... revisit later
-      - singleCaseSwitch
-      # Reasonable rule, but not sure what to replace with in
-      # many locations, so disabling for now
-      - exitAfterDefer
-      # The following 3 rules are disabled from the perfomance tag
-      # enabled further down. The first two are reasonable, but not
-      # super important. appendCombine is really nice though! And
-      # should be enabled. Just many places to fix..
-      - hugeParam
-      - preferFprint
-      - appendCombine
-    enabled-checks:
-      # NOTE that these are rules enabled in addition to the default set
-      - filepathJoin
-      - dupImport
-      - redundantSprint
-      - stringConcatSimplify
     enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
       - performance
-    settings:
-      ifElseChain:
-        # ridiculous value set for now, but this should be
-        # lowered to something more reasonable, as the rule
-        # is reasonable (replace long if-else chains with
-        # switch)... just too many violations right now
-        minThreshold: 10
+      - style
+    disabled-checks:
+      - dupImport  #  https://github.com/go-critic/go-critic/issues/845
+      - ifElseChain
+      - octalLiteral
+      - whyNoLint
+      - wrapperFunc
+  gocyclo:
+    min-complexity: 18
+  goimports:
+    local-prefixes: github.com/golangci/golangci-lint
+  mnd:
+    checks:
+      - argument
+      - case
+      - condition
+      - return
   govet:
-    enable:
-      - deepequalerrors
-      - nilness
-  perfsprint:
-    # only rule disabled by default, but it's a good one
-    err-error: true
-  revive:
-    rules:
-    # this mainly complains about us using min/max for variable names,
-    # which seems like an unlikely source of actual issues
-     - name: redefines-builtin-id
-       disabled: true
+    settings:
+      printf:
+        funcs:
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
+  lll:
+    line-length: 140
+  misspell:
+    locale: US
+  nolintlint:
+    allow-unused: false  # report any unused nolint directives
+    require-explanation: false  # don't require an explanation for nolint directives
+    require-specific: false  # don't require nolint directives to be specific about which linter is being skipped
 
 linters:
-  disable-all: true
+  # please, do not use `enable-all`: it's deprecated and will be removed soon.
+  # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
+  disable-all: false
   enable:
-    - mirror
-    - errcheck
-    - govet
-    - ineffassign
-    - intrange
-    - revive # replacement for golint
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - canonicalheader
+    - containedctx
+    - contextcheck
+    - copyloopvar
+    - cyclop
+    - decorder
+    - dogsled
+    - dupword
+    - durationcheck
+    - err113
+    - errchkjson
+    - errname
+    - errorlint
+    - exhaustive
+    - fatcontext
+    - forcetypeassert
+    - funlen
+    - gocheckcompilerdirectives
+    - gochecknoinits
+    # - gochecknoglobals
+    - gochecknoinits
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
     - gofmt
     - goimports
-    - unused
+    - goprintffuncname
+    - gosec
+    - gosmopolitan
+    - grouper
+    - importas
+    - inamedparam
+    - interfacebloat
+    - intrange
+    - lll
+    - makezero
+    - mirror
     - misspell
-    - usetesting
-    - typecheck
-    - staticcheck
-    - gosimple
-    - prealloc
-    - unconvert
-    - copyloopvar
+    - mnd
+    - musttag
+    - nakedret
+    - nestif
+    - nilerr
+    - nilnil
+    - noctx
+    - nolintlint
+    - nonamedreturns
     - perfsprint
-    - gocritic
-    # - gosec # too many false positives
+    - prealloc
+    - predeclared
+    - reassign
+    - rowserrcheck
+    - stylecheck
+    - testpackage
+    - unconvert
+    - unparam
+    - usestdlibvars
+    - wastedassign
+    - whitespace
+    - wsl
+    - zerologlint
+
+    # don't enable:
+    # - depguard
+    # - dupl
+    # - exhaustruct
+    # - gci
+    # - ginkgolinter
+    # - gochecknoglobals
+    # - gocognit
+    # - godox
+    # - gofumpt
+    # - gomoddirectives
+    # - ireturn
+    # - lll
+    # - nlreturn
+    # - nolintlint # conflict with 1.19 gofmt changes
+    # - protogetter
+    # - prealloc
+    # - revive
+    # - wsl
+    # - wrapcheck
+
+issues:
+  exclude-rules:
+    - text: "unnamedResult:"
+      linters:
+        - gocritic
+    - path: build.go
+      linters:
+      - nilnil
+    - path: logger/logrus.go
+      linters:
+        - nolintlint
+    - path: plugins.go
+      linters:
+        - nolintlint        

@@ -73,19 +73,16 @@ func (c *QueryXCmd) Run() error {
 	}
 	defer cleanup()
 
-	err = r.Start(ctx)
-	if err != nil {
+	if err := r.Start(ctx); err != nil {
 		return errors.Wrap(err, "failed to start plugin manager")
 	}
 
-	err = r.WaitForPlugins(ctx, time.Second*5)
-	if err != nil {
+	if err := r.WaitForPlugins(ctx, time.Second*5); err != nil {
 		return errors.Wrap(err, "failed to create runtime")
 	}
 
 	input := map[string]interface{}{}
-	err = json.Unmarshal([]byte(c.Input), &input)
-	if err != nil {
+	if err := json.Unmarshal([]byte(c.Input), &input); err != nil {
 		return errors.Wrap(err, "invalid input parameter")
 	}
 
@@ -99,11 +96,10 @@ func (c *QueryXCmd) Run() error {
 		return errors.Wrap(err, "decision logger lookup failed")
 	}
 
-	err = decisionLogger.Log(ctx, &decision_log.Event{
+	if err := decisionLogger.Log(ctx, &decision_log.Event{
 		DecisionID: result.DecisionID,
 		Timestamp:  time.Now().UTC(),
-	})
-	if err != nil {
+	}); err != nil {
 		return errors.Wrap(err, "failed to log decision")
 	}
 

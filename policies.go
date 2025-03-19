@@ -23,15 +23,19 @@ func (r *Runtime) ListPolicies(ctx context.Context) ([]types.PolicyV1, error) {
 			if err != nil {
 				return errors.Wrapf(err, "failed to get policy with ID [%s]", id)
 			}
+
 			policy := types.PolicyV1{
 				ID:  id,
 				Raw: string(policyBs),
 				AST: compiler.Modules[id],
 			}
+
 			policies = append(policies, policy)
 		}
+
 		return nil
 	})
+
 	return policies, err
 }
 
@@ -46,5 +50,6 @@ func (r *Runtime) GetPolicy(ctx context.Context, id string) (*types.PolicyV1, er
 			return &policy, nil
 		}
 	}
+
 	return nil, err
 }
