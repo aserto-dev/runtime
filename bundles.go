@@ -42,6 +42,7 @@ func (r *Runtime) GetBundles(ctx context.Context) ([]*PolicyItem, error) {
 		if strings.Contains(err.Error(), opaTopdown.CancelErr) {
 			return results, nil
 		}
+
 		return results, errors.Wrapf(err, "get bundles")
 	}
 
@@ -51,6 +52,7 @@ func (r *Runtime) GetBundles(ctx context.Context) ([]*PolicyItem, error) {
 			Name: b.Name,
 		})
 	}
+
 	return results, nil
 }
 
@@ -63,6 +65,7 @@ func getBundles(ctx context.Context, r *Runtime) ([]*Bundle, error) {
 	}
 
 	results := make([]*Bundle, 0)
+
 	for _, rs := range queryResults.Result {
 		v, ok := rs.Bindings["x"].(string)
 		if !ok {
@@ -115,7 +118,7 @@ func calcID(v string) string {
 func (r *Runtime) GetPolicies(ctx context.Context, id string) ([]*PolicyItem, error) {
 	policies := make([]*PolicyItem, 0)
 
-	policyList, err := r.GetPolicyList(ctx, id, NoFilter)
+	policyList, err := r.GetPolicyList(ctx, id, noFilter)
 	if err != nil {
 		return policies, err
 	}
@@ -148,12 +151,13 @@ func (p Policy) Name() string {
 	if len(s) >= 1 {
 		return s[0]
 	}
+
 	return ""
 }
 
 type PathFilterFn func(packageName string) bool
 
-var NoFilter PathFilterFn = func(packageName string) bool { return true }
+var noFilter PathFilterFn = func(packageName string) bool { return true }
 
 // GetPolicyList returns the list of policies loaded by the runtime for a given bundle, identified with the policy id.
 func (r *Runtime) GetPolicyList(ctx context.Context, id string, fn PathFilterFn) ([]Policy, error) {
@@ -194,6 +198,7 @@ func (r *Runtime) GetPolicyList(ctx context.Context, id string, fn PathFilterFn)
 				},
 			)
 		}
+
 		return nil
 	})
 	if err != nil {
@@ -203,9 +208,11 @@ func (r *Runtime) GetPolicyList(ctx context.Context, id string, fn PathFilterFn)
 	return policyList, nil
 }
 
-// GetPolicyRoot returns the package root name from the policy list (not from the .manifest file). If no policies exist, it will return an empty string as the policy root.
+// GetPolicyRoot returns the package root name from the policy list (not from the .manifest file).
+// If no policies exist, it will return an empty string as the policy root.
 func (r *Runtime) GetPolicyRoot(ctx context.Context) (string, error) {
 	var policyRoot string
+
 	err := storage.Txn(ctx, r.pluginsManager.Store, storage.TransactionParams{}, func(txn storage.Transaction) error {
 		policiesList, err := r.pluginsManager.Store.ListPolicies(ctx, txn)
 		if err != nil {
@@ -247,6 +254,7 @@ func (r *Runtime) GetPolicyRootForPath(ctx context.Context, path string) (string
 		for _, v := range policiesList {
 			// filter out entries which do not belong to policy.
 			trimmedPath := strings.TrimPrefix(v, "/")
+
 			trimmedRequestPath := strings.TrimPrefix(path, "/")
 			if !strings.HasPrefix(trimmedPath, trimmedRequestPath) {
 				continue
@@ -262,6 +270,7 @@ func (r *Runtime) GetPolicyRootForPath(ctx context.Context, path string) (string
 				break
 			}
 		}
+
 		return nil
 	})
 	if err != nil {
@@ -283,6 +292,7 @@ func (r *Runtime) getRootFromPolicyID(ctx context.Context, policyID string, txn 
 	}
 
 	packageName := strings.TrimPrefix(module.Package.Path.String(), "data.")
+
 	s := strings.Split(packageName, ".")
 	if len(s) >= 1 {
 		return s[0], nil
@@ -296,6 +306,7 @@ func policyExists(ctx context.Context, r *Runtime, id string) bool {
 		_, err := r.pluginsManager.Store.GetPolicy(ctx, txn, id)
 		return err
 	})
+
 	return err == nil
 }
 
@@ -352,6 +363,7 @@ func decID(id string) string {
 	if err != nil {
 		return ""
 	}
+
 	return string(b)
 }
 

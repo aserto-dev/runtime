@@ -80,13 +80,16 @@ type BuildParams struct {
 func (r *Runtime) Build(params *BuildParams, paths []string) error {
 	buf := bytes.NewBuffer(nil)
 
-	err := r.generateAllFakeBuiltins(paths)
-	if err != nil {
+	if err := r.generateAllFakeBuiltins(paths); err != nil {
 		return err
 	}
 
 	// generate the bundle verification and signing config.
-	var bvc *bundle.VerificationConfig
+	var (
+		bvc *bundle.VerificationConfig
+		err error
+	)
+
 	if params.PubKey != "" {
 		bvc, err = buildVerificationConfig(params.PubKey, params.PubKeyID, params.Algorithm, params.Scope, params.ExcludeVerifyFiles)
 		if err != nil {
@@ -105,6 +108,7 @@ func (r *Runtime) Build(params *BuildParams, paths []string) error {
 		if err != nil {
 			return errors.Wrapf(err, "couldn't read capabilities JSON file [%s]", params.CapabilitiesJSONFile)
 		}
+
 		capabilities, err = ast.LoadCapabilitiesJSON(bytes.NewBuffer(capabilitiesJSON))
 		if err != nil {
 			return errors.Wrapf(err, "failed to load capabilities file [%s]", params.CapabilitiesJSONFile)
@@ -134,8 +138,7 @@ func (r *Runtime) Build(params *BuildParams, paths []string) error {
 		compiler = compiler.WithBundleVerificationKeyID(params.PubKeyID)
 	}
 
-	err = compiler.Build(context.Background())
-	if err != nil {
+	if err := compiler.Build(context.Background()); err != nil {
 		return err
 	}
 
@@ -144,8 +147,7 @@ func (r *Runtime) Build(params *BuildParams, paths []string) error {
 		return err
 	}
 
-	_, err = io.Copy(out, buf)
-	if err != nil {
+	if _, err := io.Copy(out, buf); err != nil {
 		return err
 	}
 
@@ -153,13 +155,14 @@ func (r *Runtime) Build(params *BuildParams, paths []string) error {
 }
 
 func buildCommandLoaderFilter(bundleMode bool, ignore []string) func(string, os.FileInfo, int) bool {
-	return func(abspath string, info os.FileInfo, depth int) bool {
+	return func(absPath string, info os.FileInfo, depth int) bool {
 		if !bundleMode {
-			if !info.IsDir() && strings.HasSuffix(abspath, ".tar.gz") {
+			if !info.IsDir() && strings.HasSuffix(absPath, ".tar.gz") {
 				return true
 			}
 		}
-		return loaderFilter{Ignore: ignore}.Apply(abspath, info, depth)
+
+		return loaderFilter{Ignore: ignore}.Apply(absPath, info, depth)
 	}
 }
 
@@ -188,6 +191,7 @@ func buildSigningConfig(key, alg, claimsFile string) *bundle.SigningConfig {
 func (r *Runtime) registerFakeBuiltins(defs *fakeBuiltinDefs) {
 	for _, b := range defs.Builtin1 {
 		builtin := b
+
 		if topdown.GetBuiltin(b.Name) != nil {
 			r.Logger.Info().Str("builtin", b.Name).Msg("Builtin already declared, skipping fake declaration.")
 		}
@@ -203,6 +207,7 @@ func (r *Runtime) registerFakeBuiltins(defs *fakeBuiltinDefs) {
 
 	for _, b := range defs.Builtin2 {
 		builtin := b
+
 		if topdown.GetBuiltin(b.Name) != nil {
 			r.Logger.Info().Str("builtin", b.Name).Msg("Builtin already declared, skipping fake declaration.")
 		}
@@ -218,6 +223,7 @@ func (r *Runtime) registerFakeBuiltins(defs *fakeBuiltinDefs) {
 
 	for _, b := range defs.Builtin3 {
 		builtin := b
+
 		if topdown.GetBuiltin(b.Name) != nil {
 			r.Logger.Info().Str("builtin", b.Name).Msg("Builtin already declared, skipping fake declaration.")
 		}
@@ -233,6 +239,7 @@ func (r *Runtime) registerFakeBuiltins(defs *fakeBuiltinDefs) {
 
 	for _, b := range defs.Builtin4 {
 		builtin := b
+
 		if topdown.GetBuiltin(b.Name) != nil {
 			r.Logger.Info().Str("builtin", b.Name).Msg("Builtin already declared, skipping fake declaration.")
 		}
@@ -248,6 +255,7 @@ func (r *Runtime) registerFakeBuiltins(defs *fakeBuiltinDefs) {
 
 	for _, b := range defs.BuiltinDyn {
 		builtin := b
+
 		if topdown.GetBuiltin(b.Name) != nil {
 			r.Logger.Info().Str("builtin", b.Name).Msg("Builtin already declared, skipping fake declaration.")
 		}
@@ -263,7 +271,7 @@ func (r *Runtime) registerFakeBuiltins(defs *fakeBuiltinDefs) {
 }
 
 func fileExists(path string) (bool, error) {
-	if _, err := os.Stat(path); err == nil {
+	if fi, err := os.Stat(path); err == nil && !fi.IsDir() {
 		return true, nil
 	} else if os.IsNotExist(err) {
 		return false, nil
@@ -275,6 +283,7 @@ func fileExists(path string) (bool, error) {
 func (r *Runtime) generateAllFakeBuiltins(paths []string) error {
 	for _, path := range paths {
 		manifestPath := filepath.Join(path, ".manifest")
+
 		manifestExists, err := fileExists(manifestPath)
 		if err != nil {
 			return errors.Wrapf(err, "failed to determine if file [%s] exists", manifestPath)
@@ -294,8 +303,8 @@ func (r *Runtime) generateAllFakeBuiltins(paths []string) error {
 				RequiredBuiltins *fakeBuiltinDefs `json:"required_builtins"`
 			} `json:"metadata,omitempty"`
 		}{}
-		err = json.Unmarshal(manifestBytes, &manifest)
-		if err != nil {
+
+		if err := json.Unmarshal(manifestBytes, &manifest); err != nil {
 			return errors.Wrapf(err, "failed to unmarshal json from manifest [%s]", manifestPath)
 		}
 

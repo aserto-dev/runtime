@@ -66,7 +66,11 @@ func (c *OPAConfig) ServicesCopy() map[string]interface{} {
 		panic(err)
 	}
 
-	return servicesCopy.(map[string]interface{})
+	if sc, ok := servicesCopy.(map[string]interface{}); ok {
+		return sc
+	}
+
+	return nil
 }
 
 func (c *OPAConfig) DiscoveryCopy() *discovery.Config {
@@ -79,5 +83,9 @@ func (c *OPAConfig) DiscoveryCopy() *discovery.Config {
 		panic(err)
 	}
 
-	return discoveryCopy.(*discovery.Config)
+	if dc, ok := discoveryCopy.(*discovery.Config); ok {
+		return dc
+	}
+
+	return nil
 }

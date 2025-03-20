@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/aserto-dev/runtime/logger"
+
 	"github.com/open-policy-agent/opa/v1/ast"
 	"github.com/open-policy-agent/opa/v1/bundle"
 	"github.com/open-policy-agent/opa/v1/loader"
@@ -24,10 +25,9 @@ import (
 	"github.com/open-policy-agent/opa/v1/storage/inmem"
 	"github.com/open-policy-agent/opa/v1/topdown/cache"
 	"github.com/open-policy-agent/opa/v1/version"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
-
-	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
 // Runtime manages the OPA runtime (plugins, store and info data).
@@ -95,6 +95,7 @@ func newOPARuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts .
 		plugins:      map[string]plugins.Factory{},
 		regoVersion:  ast.RegoV0,
 	}
+
 	runtime.latestState.Store(&State{})
 
 	for _, opt := range opts {
@@ -109,7 +110,9 @@ func newOPARuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts .
 	// In order for that to work, the plugin manager has to allow us to tell the compiler
 	// of our builtins.
 	builtinsLock.Lock()
+
 	defer builtinsLock.Unlock()
+
 	for decl, impl := range runtime.builtins1 {
 		log.Info().Str("name", decl.Name).Msg("registering builtin1")
 		rego.RegisterBuiltin1(decl, impl)
@@ -136,6 +139,7 @@ func newOPARuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts .
 	}
 
 	var err error
+
 	runtime.pluginsManager, err = runtime.newOPAPluginsManager(ctx)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to setup plugin manager")
@@ -147,24 +151,27 @@ func newOPARuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts .
 
 	for pluginName, factory := range runtime.plugins {
 		log.Info().Str("plugin-name", pluginName).Msg("registering plugin")
+
 		registeredPlugins[pluginName] = factory
 	}
 
 	m := metrics.New()
+
 	disco, err := discovery.New(runtime.pluginsManager, discovery.Factories(registeredPlugins), discovery.Metrics(m))
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "config error")
 	}
+
 	runtime.pluginsManager.Register("discovery", disco)
-	err = runtime.registerStatusPlugin([]string{"discovery"})
-	if err != nil {
+
+	if err := runtime.registerStatusPlugin([]string{"discovery"}); err != nil {
 		return nil, nil, err
 	}
 
 	if cfg.LocalBundles.Watch {
 		log.Info().Msg("Will start watching local bundles for changes")
-		err := runtime.startWatcher(ctx, cfg.LocalBundles.Paths, runtime.onReloadLogger)
-		if err != nil {
+
+		if err := runtime.startWatcher(ctx, cfg.LocalBundles.Paths, runtime.onReloadLogger); err != nil {
 			log.Error().Err(err).Msg("unable to open watch")
 			return nil, nil, errors.Wrap(err, "unable to open watch for local bundles")
 		}
@@ -184,7 +191,9 @@ func (r *Runtime) registerStatusPlugin(pluginNames []string) error {
 		r.Logger.Debug().Msg("status plugin not registered")
 		return nil
 	}
+
 	r.Logger.Debug().Msg("registering status plugin")
+
 	rawconfig, err := r.Config.rawOPAConfig()
 	if err != nil {
 		return errors.Wrap(err, "raw config error")
@@ -197,8 +206,10 @@ func (r *Runtime) registerStatusPlugin(pluginNames []string) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to build status service config")
 	}
+
 	statusPlugin := opaStatus.New(statusConfig, r.pluginsManager)
 	r.pluginsManager.Register("status", statusPlugin)
+
 	return nil
 }
 
@@ -264,8 +275,16 @@ func (r *Runtime) status() *State {
 	}
 
 	r.pluginStates.Range(func(key, value interface{}) bool {
-		pluginName := key.(string)
-		state := value.(*pluginState)
+		pluginName, ok := key.(string)
+		if !ok {
+			return false
+		}
+
+		state, ok := value.(*pluginState)
+		if !ok {
+			return false
+		}
+
 		if !state.loaded {
 			result.Ready = false
 		}
@@ -278,8 +297,15 @@ func (r *Runtime) status() *State {
 	})
 
 	r.bundleStates.Range(func(key, value interface{}) bool {
-		bundleID := key.(string)
-		state := value.(*bundleState)
+		bundleID, ok := key.(string)
+		if !ok {
+			return false
+		}
+
+		state, ok := value.(*bundleState)
+		if !ok {
+			return false
+		}
 
 		bs := BundleState{
 			ID:             bundleID,
@@ -311,6 +337,7 @@ func (r *Runtime) newOPAPluginsManager(ctx context.Context) (*plugins.Manager, e
 	r.Logger.Info().Msg("creating OPA plugins manager")
 
 	info := ast.NewObject()
+
 	if r.Config != nil {
 		v, err := ast.InterfaceToValue(r.Config.Config)
 		if err != nil {
@@ -323,8 +350,11 @@ func (r *Runtime) newOPAPluginsManager(ctx context.Context) (*plugins.Manager, e
 	env := ast.NewObject()
 
 	r.Logger.Debug().Msg("loading process environment variables as rego terms")
+
+	const maxParts int = 2
+
 	for _, s := range os.Environ() {
-		parts := strings.SplitN(s, "=", 2)
+		parts := strings.SplitN(s, "=", maxParts)
 		if len(parts) == 1 {
 			env.Insert(ast.StringTerm(parts[0]), ast.NullTerm())
 		} else if len(parts) > 1 {
@@ -357,7 +387,6 @@ func (r *Runtime) newOPAPluginsManager(ctx context.Context) (*plugins.Manager, e
 		plugins.GracefulShutdownPeriod(r.Config.GracefulShutdownPeriodSeconds),
 		plugins.Logger(logger.NewOpaLogger(r.Logger)),
 	)
-
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize OPA plugins")
 	}
@@ -368,7 +397,7 @@ func (r *Runtime) newOPAPluginsManager(ctx context.Context) (*plugins.Manager, e
 		return nil, errors.Wrap(err, "initialization error")
 	}
 
-	// TODO: this line is useless because the manager initializes the compiler
+	// Note: this line is useless because the manager initializes the compiler
 	// during init, and we don't have any control over it.
 	// The compiler creates its own builtins array during its own init(), and
 	// afterwards that cannot be changed anymore.
@@ -384,11 +413,13 @@ func (r *Runtime) loadPaths(paths []string) (map[string]*bundle.Bundle, error) {
 	if len(paths) == 0 {
 		paths = r.Config.LocalBundles.Paths
 	}
+
 	if r.Config.LocalBundles.LocalPolicyImage != "" {
 		tarballpath, err := r.getPolicyTarballPath(r.Config.LocalBundles.LocalPolicyImage)
 		if err != nil {
 			r.Logger.Warn().Err(err).Msg("Could not load configured local policy image")
 		}
+
 		paths = append(paths, tarballpath)
 	}
 
@@ -401,9 +432,11 @@ func (r *Runtime) loadPaths(paths []string) (map[string]*bundle.Bundle, error) {
 
 	for _, path := range paths {
 		r.Logger.Info().Str("path", path).Msg("Loading local bundle")
-		result[path], err = loader.NewFileLoader().WithBundleVerificationConfig(verificationConfig).
-			WithSkipBundleVerification(skipVerify).AsBundle(path)
 
+		result[path], err = loader.NewFileLoader().
+			WithBundleVerificationConfig(verificationConfig).
+			WithSkipBundleVerification(skipVerify).
+			AsBundle(path)
 		if err != nil {
 			errorStatus := bundleplugin.Status{
 				Name: path,
@@ -452,6 +485,7 @@ func (r *Runtime) getPolicyTarballPath(policyImageRef string) (string, error) {
 		if err != nil {
 			return "", errors.Wrap(err, "failed to determine user home directory")
 		}
+
 		r.Config.LocalBundles.FileStoreRoot = filepath.Join(home, ".policy")
 	}
 
@@ -461,28 +495,35 @@ func (r *Runtime) getPolicyTarballPath(policyImageRef string) (string, error) {
 		Manifests []ocispec.Descriptor `json:"manifests"`
 	}
 
-	var localIndex index
 	indexPath := filepath.Join(r.Config.LocalBundles.FileStoreRoot, "policies-root", "index.json")
+
 	time.Sleep(1 * time.Second) // wait until index.json is updated
+
 	indexBytes, err := os.ReadFile(indexPath)
 	if err != nil {
 		return "", err
 	}
+
 	if len(indexBytes) == 0 {
 		return "", errors.Errorf("empty index.json file")
 	}
 
-	err = json.Unmarshal(indexBytes, &localIndex)
-	if err != nil {
+	var localIndex index
+	if err := json.Unmarshal(indexBytes, &localIndex); err != nil {
 		return "", err
 	}
+
 	// load manifest for policyImageRef
 	var search ocispec.Descriptor
+
 	for _, manifest := range localIndex.Manifests {
-		if strings.Contains(manifest.Annotations[ocispec.AnnotationRefName], policyImageRef) && manifest.MediaType == ocispec.MediaTypeImageLayerGzip {
+		if strings.Contains(manifest.Annotations[ocispec.AnnotationRefName], policyImageRef) &&
+			manifest.MediaType == ocispec.MediaTypeImageLayerGzip {
 			return filepath.Join(r.Config.LocalBundles.FileStoreRoot, "policies-root", "blobs", "sha256", manifest.Digest.Hex()), nil
 		}
-		if strings.Contains(manifest.Annotations[ocispec.AnnotationRefName], policyImageRef) && manifest.MediaType == ocispec.MediaTypeImageManifest {
+
+		if strings.Contains(manifest.Annotations[ocispec.AnnotationRefName], policyImageRef) &&
+			manifest.MediaType == ocispec.MediaTypeImageManifest {
 			search = manifest
 			break
 		}
@@ -495,19 +536,28 @@ func (r *Runtime) getPolicyTarballPath(policyImageRef string) (string, error) {
 	}
 
 	manifestFile := filepath.Join(r.Config.LocalBundles.FileStoreRoot, "policies-root", "blobs", "sha256", search.Digest.Hex())
+
 	manifestBytes, err := os.ReadFile(manifestFile)
 	if err != nil {
 		return "", err
 	}
+
 	var searchedManifest ocispec.Manifest
-	err = json.Unmarshal(manifestBytes, &searchedManifest)
-	if err != nil {
+	if err := json.Unmarshal(manifestBytes, &searchedManifest); err != nil {
 		return "", err
 	}
+
 	if len(searchedManifest.Layers) != 1 {
 		return "", errors.New("unknown image type - incorrect number of layers")
 	}
-	tarballPath := filepath.Join(r.Config.LocalBundles.FileStoreRoot, "policies-root", "blobs", "sha256", searchedManifest.Layers[0].Digest.Hex())
+
+	tarballPath := filepath.Join(
+		r.Config.LocalBundles.FileStoreRoot,
+		"policies-root",
+		"blobs",
+		"sha256",
+		searchedManifest.Layers[0].Digest.Hex(),
+	)
 
 	return tarballPath, nil
 }

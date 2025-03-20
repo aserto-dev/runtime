@@ -10,29 +10,40 @@ GOOS               := $(shell go env GOOS)
 GOARCH             := $(shell go env GOARCH)
 GOPRIVATE          := "github.com/aserto-dev"
 
-EXT_DIR            := ./.ext
+EXT_DIR            := ${PWD}/.ext
 EXT_BIN_DIR        := ${EXT_DIR}/bin
 EXT_TMP_DIR        := ${EXT_DIR}/tmp
 
 GO_VER             := 1.24
+SVU_VER 	         := 3.1.0
 GOTESTSUM_VER      := 1.11.0
 GOLANGCI-LINT_VER  := 1.64.5
 WIRE_VER	         := 0.6.0
 
-.DEFAULT_GOAL      := lint
+RELEASE_TAG        := $$(${EXT_BIN_DIR}/svu current)
+
+.DEFAULT_GOAL      := build
 
 .PHONY: deps
-deps: info install-golangci-lint install-gotestsum install-wire    
+deps: info install-golangci-lint install-gotestsum install-wire install-svu
+	@echo -e "$(ATTN_COLOR)==> $@ $(NO_COLOR)"
+
+.PHONY: gover
+gover:
 	@echo -e "$(ATTN_COLOR)==> $@ $(NO_COLOR)"
 	@(go env GOVERSION | grep "go${GO_VER}") || (echo "go version check failed expected go${GO_VER} got $$(go env GOVERSION)"; exit 1)
 
+PHONY: go-mod-tidy
+go-mod-tidy:
+	@echo -e "$(ATTN_COLOR)==> $@ $(NO_COLOR)"
+	@go work edit -json | jq -r '.Use[].DiskPath' | xargs -I{} bash -c 'cd {} && echo "${PWD}/go.mod" && go mod tidy -v && cd -'
 .PHONY: generate
 generate:
 	@echo -e "$(ATTN_COLOR)==> $@ $(NO_COLOR)"
 	@GOBIN=${PWD}/${EXT_BIN_DIR} go generate ./...
 
 .PHONY: lint
-lint:
+lint: gover
 	@echo -e "$(ATTN_COLOR)==> $@ $(NO_COLOR)"
 	@${EXT_BIN_DIR}/golangci-lint config path
 	@${EXT_BIN_DIR}/golangci-lint config verify
@@ -56,7 +67,16 @@ info:
 	@echo "GOARCH:      ${GOARCH}"
 	@echo "EXT_DIR:     ${EXT_DIR}"
 	@echo "EXT_BIN_DIR: ${EXT_BIN_DIR}"
-	@echo "EXT_TMP_DIR: ${EXT_TMP_DIR}"	
+	@echo "EXT_TMP_DIR: ${EXT_TMP_DIR}"
+	@echo "RELEASE_TAG: ${RELEASE_TAG}"
+
+.PHONY: install-svu
+install-svu: ${EXT_BIN_DIR} ${EXT_TMP_DIR}
+	@echo -e "$(ATTN_COLOR)==> $@ $(NO_COLOR)"
+	@gh release download v${SVU_VER} --repo https://github.com/caarlos0/svu --pattern "*${GOOS}_all.tar.gz" --output "${EXT_TMP_DIR}/svu.tar.gz" --clobber
+	@tar -xvf ${EXT_TMP_DIR}/svu.tar.gz --directory ${EXT_BIN_DIR} svu &> /dev/null
+	@chmod +x ${EXT_BIN_DIR}/svu
+	@${EXT_BIN_DIR}/svu --version
 
 .PHONY: install-gotestsum
 install-gotestsum: ${EXT_TMP_DIR} ${EXT_BIN_DIR}

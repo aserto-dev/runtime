@@ -16,5 +16,6 @@ func (f loaderFilter) Apply(abspath string, info os.FileInfo, depth int) bool {
 			return true
 		}
 	}
+
 	return false
 }

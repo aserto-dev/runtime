@@ -18,9 +18,15 @@ type CompileResult struct {
 	Explanation types.TraceV1
 }
 
-func (r *Runtime) Compile(ctx context.Context, qStr string, input map[string]interface{}, unknowns []string, disableInlining []string,
-	pretty, includeMetrics, includeInstrumentation bool, explain types.ExplainModeV1) (*CompileResult, error) {
-
+func (r *Runtime) Compile(
+	ctx context.Context,
+	qStr string,
+	input map[string]interface{},
+	unknowns []string,
+	disableInlining []string,
+	pretty, includeMetrics, includeInstrumentation bool,
+	explain types.ExplainModeV1,
+) (*CompileResult, error) {
 	m := metrics.New()
 	m.Timer(metrics.ServerHandler).Start()
 
@@ -37,10 +43,12 @@ func (r *Runtime) Compile(ctx context.Context, qStr string, input map[string]int
 	}
 
 	m.Timer(metrics.RegoQueryParse).Start()
+
 	parsedQuery, err := r.ValidateQuery(qStr)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to validate query")
 	}
+
 	m.Timer(metrics.RegoQueryParse).Stop()
 
 	eval := rego.New(
@@ -87,5 +95,6 @@ func (r *Runtime) Compile(ctx context.Context, qStr string, input map[string]int
 	}
 
 	result.Result = &i
+
 	return result, nil
 }

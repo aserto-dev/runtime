@@ -39,12 +39,15 @@ func (l *OpaLogger) WithFields(fields map[string]interface{}) logging.Logger {
 	newLogger := l.logger.With().Fields(fields).Logger()
 	logger := NewOpaLogger(&newLogger)
 	logger.fields = make(map[string]interface{})
+
 	for k, v := range l.fields {
 		logger.fields[k] = v
 	}
+
 	for k, v := range fields {
 		logger.fields[k] = v
 	}
+
 	return logger
 }
 
@@ -69,6 +72,7 @@ func (l *OpaLogger) GetLevel() logging.Level {
 
 func (l *OpaLogger) SetLevel(level logging.Level) {
 	zLevel := zerolog.DebugLevel
+
 	switch level {
 	case logging.Debug:
 		zLevel = zerolog.DebugLevel
@@ -82,6 +86,7 @@ func (l *OpaLogger) SetLevel(level logging.Level) {
 
 	l.levelLock.Lock()
 	defer l.levelLock.Unlock()
+
 	newLogger := l.logger.Level(zLevel)
 	l.logger = &newLogger
 }

@@ -21,6 +21,7 @@ var _ storage.Store = &AsertoStore{}
 // newAsertoStore creates a new AsertoStore.
 func NewAsertoStore(logger *zerolog.Logger, cfg *Config) *AsertoStore {
 	newLogger := logger.With().Str("source", "aserto-storage").Logger()
+
 	return &AsertoStore{
 		logger:  &newLogger,
 		cfg:     cfg,

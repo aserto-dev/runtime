@@ -17,6 +17,7 @@ func TestEmptyRuntime(t *testing.T) {
 	assert := require.New(t)
 	r, cleanup, err := runtime.NewRuntime(context.Background(), &zerolog.Logger{}, &runtime.Config{})
 	assert.NoError(err)
+
 	defer cleanup()
 
 	// Act
@@ -35,6 +36,7 @@ func TestLocalBundle(t *testing.T) {
 		},
 	})
 	assert.NoError(err)
+
 	defer cleanup()
 
 	// Act
@@ -42,8 +44,8 @@ func TestLocalBundle(t *testing.T) {
 
 	// Assert
 	assert.True(s.Ready)
-	assert.Equal(0, len(s.Errors))
-	assert.Equal(1, len(s.Bundles))
+	assert.Empty(s.Errors)
+	assert.Len(s.Bundles, 1)
 }
 
 func TestFailingLocalBundle(t *testing.T) {
@@ -83,17 +85,20 @@ func TestRemoteBundle(t *testing.T) {
 	})
 
 	assert.NoError(err)
+
 	defer cleanup()
 
 	// Act
 	err = r.Start(context.Background())
 	assert.NoError(err)
+
 	err = r.WaitForPlugins(context.Background(), time.Second*5)
 	assert.NoError(err)
+
 	s := r.Status()
 
 	// Assert
 	assert.True(s.Ready)
-	assert.Equal(0, len(s.Errors))
-	assert.Equal(1, len(s.Bundles))
+	assert.Empty(s.Errors)
+	assert.Len(s.Bundles, 1)
 }

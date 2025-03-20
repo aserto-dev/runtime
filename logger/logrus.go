@@ -24,7 +24,6 @@ func addLogrusHook(log *zerolog.Logger) {
 	logrus.AddHook(&logrusHook{logger: &logrusLogger})
 	logrus.SetLevel(logrus.TraceLevel)
 	logrus.SetOutput(io.Discard)
-
 }
 
 // logrusHook is a logrus hook that writes to zerolog.
