@@ -43,7 +43,7 @@ func (c *QueryCmd) Run() error {
 	}
 	defer cleanup()
 
-	input := map[string]interface{}{}
+	input := map[string]any{}
 	if err := json.Unmarshal([]byte(c.Input), &input); err != nil {
 		return errors.Wrap(err, "invalid input parameter")
 	}

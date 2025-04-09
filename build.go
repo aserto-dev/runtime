@@ -201,7 +201,7 @@ func (r *Runtime) registerFakeBuiltins(defs *fakeBuiltinDefs) {
 			Memoize: false,
 			Decl:    &builtin.Decl,
 		}, func(rego.BuiltinContext, *ast.Term) (*ast.Term, error) {
-			return nil, nil
+			return &ast.Term{}, nil
 		})
 	}
 
@@ -217,7 +217,7 @@ func (r *Runtime) registerFakeBuiltins(defs *fakeBuiltinDefs) {
 			Memoize: false,
 			Decl:    &builtin.Decl,
 		}, func(bctx rego.BuiltinContext, op1, op2 *ast.Term) (*ast.Term, error) {
-			return nil, nil
+			return &ast.Term{}, nil
 		})
 	}
 
@@ -233,7 +233,7 @@ func (r *Runtime) registerFakeBuiltins(defs *fakeBuiltinDefs) {
 			Memoize: false,
 			Decl:    &builtin.Decl,
 		}, func(bctx rego.BuiltinContext, op1, op2, op3 *ast.Term) (*ast.Term, error) {
-			return nil, nil
+			return &ast.Term{}, nil
 		})
 	}
 
@@ -249,7 +249,7 @@ func (r *Runtime) registerFakeBuiltins(defs *fakeBuiltinDefs) {
 			Memoize: false,
 			Decl:    &builtin.Decl,
 		}, func(bctx rego.BuiltinContext, op1, op2, op3, op4 *ast.Term) (*ast.Term, error) {
-			return nil, nil
+			return &ast.Term{}, nil
 		})
 	}
 
@@ -265,7 +265,7 @@ func (r *Runtime) registerFakeBuiltins(defs *fakeBuiltinDefs) {
 			Memoize: false,
 			Decl:    &builtin.Decl,
 		}, func(bctx rego.BuiltinContext, terms []*ast.Term) (*ast.Term, error) {
-			return nil, nil
+			return &ast.Term{}, nil
 		})
 	}
 }
@@ -293,7 +293,7 @@ func (r *Runtime) generateAllFakeBuiltins(paths []string) error {
 			continue
 		}
 
-		manifestBytes, err := os.ReadFile(manifestPath)
+		manifestBytes, err := os.ReadFile(manifestPath) //nolint:gosec
 		if err != nil {
 			return errors.Wrapf(err, "failed to read manifest [%s]", manifestPath)
 		}

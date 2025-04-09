@@ -50,7 +50,7 @@ func (dl *DecisionLogger) Stop(ctx context.Context) {
 	dl.manager.UpdatePluginStatus(PluginName, &plugins.Status{State: plugins.StateOK})
 }
 
-func (dl *DecisionLogger) Reconfigure(ctx context.Context, config interface{}) {
+func (dl *DecisionLogger) Reconfigure(ctx context.Context, config any) {
 }
 
 type Event struct {

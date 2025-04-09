@@ -16,12 +16,12 @@ func NewPluginFactory() PluginFactory {
 	return PluginFactory{}
 }
 
-func (PluginFactory) New(m *plugins.Manager, config interface{}) plugins.Plugin {
+func (PluginFactory) New(m *plugins.Manager, config any) plugins.Plugin {
 	cfg := config.(*Config)
 	return newDecisionLogger(cfg, m)
 }
 
-func (PluginFactory) Validate(m *plugins.Manager, config []byte) (interface{}, error) {
+func (PluginFactory) Validate(m *plugins.Manager, config []byte) (any, error) {
 	parsedConfig := Config{}
 	v := viper.New()
 	v.SetConfigType("json")

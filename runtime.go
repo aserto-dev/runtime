@@ -3,6 +3,7 @@ package runtime
 import (
 	"context"
 	"encoding/json"
+	"maps"
 	"os"
 	"path/filepath"
 	"strings"
@@ -106,65 +107,17 @@ func newOPARuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts .
 		runtime.storage = inmem.New()
 	}
 
-	// We shouldn't register global builtins, these should be per runtime.
-	// In order for that to work, the plugin manager has to allow us to tell the compiler
-	// of our builtins.
-	builtinsLock.Lock()
+	runtime.registerBuiltins()
 
-	defer builtinsLock.Unlock()
-
-	for decl, impl := range runtime.builtins1 {
-		log.Info().Str("name", decl.Name).Msg("registering builtin1")
-		rego.RegisterBuiltin1(decl, impl)
-	}
-
-	for decl, impl := range runtime.builtins2 {
-		log.Info().Str("name", decl.Name).Msg("registering builtin2")
-		rego.RegisterBuiltin2(decl, impl)
-	}
-
-	for decl, impl := range runtime.builtins3 {
-		log.Info().Str("name", decl.Name).Msg("registering builtin3")
-		rego.RegisterBuiltin3(decl, impl)
-	}
-
-	for decl, impl := range runtime.builtins4 {
-		log.Info().Str("name", decl.Name).Msg("registering builtin4")
-		rego.RegisterBuiltin4(decl, impl)
-	}
-
-	for decl, impl := range runtime.builtinsDyn {
-		log.Info().Str("name", decl.Name).Msg("registering builtinDyn")
-		rego.RegisterBuiltinDyn(decl, impl)
-	}
-
-	var err error
-
-	runtime.pluginsManager, err = runtime.newOPAPluginsManager(ctx)
-	if err != nil {
+	if pm, err := runtime.newOPAPluginsManager(ctx); err != nil {
 		return nil, nil, errors.Wrap(err, "failed to setup plugin manager")
+	} else {
+		runtime.pluginsManager = pm
 	}
 
 	runtime.InterQueryCache = cache.NewInterQueryCache(runtime.pluginsManager.InterQueryBuiltinCacheConfig())
 
-	registeredPlugins := map[string]plugins.Factory{}
-
-	for pluginName, factory := range runtime.plugins {
-		log.Info().Str("plugin-name", pluginName).Msg("registering plugin")
-
-		registeredPlugins[pluginName] = factory
-	}
-
-	m := metrics.New()
-
-	disco, err := discovery.New(runtime.pluginsManager, discovery.Factories(registeredPlugins), discovery.Metrics(m))
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "config error")
-	}
-
-	runtime.pluginsManager.Register("discovery", disco)
-
-	if err := runtime.registerStatusPlugin([]string{"discovery"}); err != nil {
+	if err := runtime.registerDiscovery(); err != nil {
 		return nil, nil, err
 	}
 
@@ -184,6 +137,51 @@ func newOPARuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts .
 			runtime.Stop(ctx)
 		},
 		nil
+}
+
+func (r *Runtime) registerBuiltins() {
+	// We shouldn't register global builtins, these should be per runtime.
+	// In order for that to work, the plugin manager has to allow us to tell the compiler
+	// of our builtins.
+	builtinsLock.Lock()
+
+	defer builtinsLock.Unlock()
+
+	for decl, impl := range r.builtins1 {
+		r.Logger.Info().Str("name", decl.Name).Msg("registering builtin1")
+		rego.RegisterBuiltin1(decl, impl)
+	}
+
+	for decl, impl := range r.builtins2 {
+		r.Logger.Info().Str("name", decl.Name).Msg("registering builtin2")
+		rego.RegisterBuiltin2(decl, impl)
+	}
+
+	for decl, impl := range r.builtins3 {
+		r.Logger.Info().Str("name", decl.Name).Msg("registering builtin3")
+		rego.RegisterBuiltin3(decl, impl)
+	}
+
+	for decl, impl := range r.builtins4 {
+		r.Logger.Info().Str("name", decl.Name).Msg("registering builtin4")
+		rego.RegisterBuiltin4(decl, impl)
+	}
+
+	for decl, impl := range r.builtinsDyn {
+		r.Logger.Info().Str("name", decl.Name).Msg("registering builtinDyn")
+		rego.RegisterBuiltinDyn(decl, impl)
+	}
+}
+
+func (r *Runtime) registerDiscovery() error {
+	disco, err := discovery.New(r.pluginsManager, discovery.Factories(maps.Clone(r.plugins)), discovery.Metrics(metrics.New()))
+	if err != nil {
+		return errors.Wrap(err, "failed to create discovery plugin")
+	}
+
+	r.pluginsManager.Register("discovery", disco)
+
+	return r.registerStatusPlugin([]string{"discovery"})
 }
 
 func (r *Runtime) registerStatusPlugin(pluginNames []string) error {
@@ -274,7 +272,7 @@ func (r *Runtime) status() *State {
 		Bundles: []BundleState{},
 	}
 
-	r.pluginStates.Range(func(key, value interface{}) bool {
+	r.pluginStates.Range(func(key, value any) bool {
 		pluginName, ok := key.(string)
 		if !ok {
 			return false
@@ -296,7 +294,7 @@ func (r *Runtime) status() *State {
 		return true
 	})
 
-	r.bundleStates.Range(func(key, value interface{}) bool {
+	r.bundleStates.Range(func(key, value any) bool {
 		bundleID, ok := key.(string)
 		if !ok {
 			return false
@@ -480,64 +478,34 @@ func (r *Runtime) GetPluginsManager() *plugins.Manager {
 }
 
 func (r *Runtime) getPolicyTarballPath(policyImageRef string) (string, error) {
-	if r.Config.LocalBundles.FileStoreRoot == "" {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return "", errors.Wrap(err, "failed to determine user home directory")
-		}
-
-		r.Config.LocalBundles.FileStoreRoot = filepath.Join(home, ".policy")
-	}
-
-	// load index.json from root oci path
-	type index struct {
-		Version   int                  `json:"schemaVersion"`
-		Manifests []ocispec.Descriptor `json:"manifests"`
-	}
-
-	indexPath := filepath.Join(r.Config.LocalBundles.FileStoreRoot, "policies-root", "index.json")
-
-	time.Sleep(1 * time.Second) // wait until index.json is updated
-
-	indexBytes, err := os.ReadFile(indexPath)
+	storeRoot, err := r.fileStoreRoot()
 	if err != nil {
 		return "", err
 	}
 
-	if len(indexBytes) == 0 {
-		return "", errors.Errorf("empty index.json file")
-	}
+	time.Sleep(1 * time.Second) // wait until index.json is updated
 
-	var localIndex index
-	if err := json.Unmarshal(indexBytes, &localIndex); err != nil {
+	localIndex, err := r.loadBundleIndex(storeRoot)
+	if err != nil {
 		return "", err
 	}
 
 	// load manifest for policyImageRef
-	var search ocispec.Descriptor
+	manifest, found := localIndex.findManifest(policyImageRef)
 
-	for _, manifest := range localIndex.Manifests {
-		if strings.Contains(manifest.Annotations[ocispec.AnnotationRefName], policyImageRef) &&
-			manifest.MediaType == ocispec.MediaTypeImageLayerGzip {
-			return filepath.Join(r.Config.LocalBundles.FileStoreRoot, "policies-root", "blobs", "sha256", manifest.Digest.Hex()), nil
-		}
-
-		if strings.Contains(manifest.Annotations[ocispec.AnnotationRefName], policyImageRef) &&
-			manifest.MediaType == ocispec.MediaTypeImageManifest {
-			search = manifest
-			break
-		}
+	if found && manifest.MediaType == ocispec.MediaTypeImageLayerGzip {
+		return filepath.Join(storeRoot, "policies-root", "blobs", "sha256", manifest.Digest.Hex()), nil
 	}
 
-	if search.Digest == "" {
+	if !found || manifest.Digest == "" {
 		return "", errors.Errorf("could not find policy image %s with a supported media type ('%s' or '%s')",
 			policyImageRef, ocispec.MediaTypeImageManifest, ocispec.MediaTypeImageLayerGzip,
 		)
 	}
 
-	manifestFile := filepath.Join(r.Config.LocalBundles.FileStoreRoot, "policies-root", "blobs", "sha256", search.Digest.Hex())
+	manifestFile := filepath.Join(storeRoot, "policies-root", "blobs", "sha256", manifest.Digest.Hex())
 
-	manifestBytes, err := os.ReadFile(manifestFile)
+	manifestBytes, err := os.ReadFile(manifestFile) //nolint:gosec
 	if err != nil {
 		return "", err
 	}
@@ -560,6 +528,57 @@ func (r *Runtime) getPolicyTarballPath(policyImageRef string) (string, error) {
 	)
 
 	return tarballPath, nil
+}
+
+type bundleIndex struct {
+	Version   int                  `json:"schemaVersion"`
+	Manifests []ocispec.Descriptor `json:"manifests"`
+}
+
+func (i *bundleIndex) findManifest(policyImageRef string) (*ocispec.Descriptor, bool) {
+	for _, manifest := range i.Manifests {
+		refName := manifest.Annotations[ocispec.AnnotationRefName]
+		if strings.Contains(refName, policyImageRef) && (manifest.MediaType == ocispec.MediaTypeImageLayerGzip ||
+			manifest.MediaType == ocispec.MediaTypeImageManifest) {
+			return &manifest, true
+		}
+	}
+
+	return nil, false
+}
+
+func (r *Runtime) loadBundleIndex(storeRoot string) (*bundleIndex, error) {
+	indexPath := filepath.Join(storeRoot, "policies-root", "index.json")
+
+	indexBytes, err := os.ReadFile(indexPath) //nolint:gosec
+	if err != nil {
+		return nil, err
+	}
+
+	if len(indexBytes) == 0 {
+		return nil, errors.Errorf("empty index.json file")
+	}
+
+	// load index.json from root oci path
+	var index bundleIndex
+	if err := json.Unmarshal(indexBytes, &index); err != nil {
+		return nil, err
+	}
+
+	return &index, nil
+}
+
+func (r *Runtime) fileStoreRoot() (string, error) {
+	if r.Config.LocalBundles.FileStoreRoot == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "", errors.Wrap(err, "failed to determine user home directory")
+		}
+
+		r.Config.LocalBundles.FileStoreRoot = filepath.Join(home, ".policy")
+	}
+
+	return r.Config.LocalBundles.FileStoreRoot, nil
 }
 
 func (r *Runtime) WithRegoV1() *Runtime {

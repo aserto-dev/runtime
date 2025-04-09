@@ -42,13 +42,13 @@ type LocalBundlesConfig struct {
 }
 
 type OPAConfig struct {
-	Services                     map[string]interface{}          `json:"services,omitempty"`
+	Services                     map[string]any                  `json:"services,omitempty"`
 	Labels                       map[string]string               `json:"labels,omitempty"`
 	Discovery                    *discovery.Config               `json:"discovery,omitempty"`
 	Bundles                      map[string]*bundleplugin.Source `json:"bundles,omitempty"`
 	DecisionLogs                 *logs.Config                    `json:"decision_logs,omitempty"`
 	Status                       *status.Config                  `json:"status,omitempty"`
-	Plugins                      map[string]interface{}          `json:"plugins,omitempty"`
+	Plugins                      map[string]any                  `json:"plugins,omitempty"`
 	Keys                         map[string]*keys.Config         `json:"keys,omitempty"`
 	DefaultDecision              *string                         `json:"default_decision,omitempty"`
 	DefaultAuthorizationDecision *string                         `json:"default_authorization_decision,omitempty"`
@@ -56,7 +56,7 @@ type OPAConfig struct {
 	PersistenceDirectory         *string                         `json:"persistence_directory,omitempty"`
 }
 
-func (c *OPAConfig) ServicesCopy() map[string]interface{} {
+func (c *OPAConfig) ServicesCopy() map[string]any {
 	if c.Services == nil {
 		return nil
 	}
@@ -66,7 +66,7 @@ func (c *OPAConfig) ServicesCopy() map[string]interface{} {
 		panic(err)
 	}
 
-	if sc, ok := servicesCopy.(map[string]interface{}); ok {
+	if sc, ok := servicesCopy.(map[string]any); ok {
 		return sc
 	}
 

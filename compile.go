@@ -13,15 +13,15 @@ import (
 
 // Result contains the results of a Compile execution.
 type CompileResult struct {
-	Result      *interface{}
-	Metrics     map[string]interface{}
+	Result      *any
+	Metrics     map[string]any
 	Explanation types.TraceV1
 }
 
 func (r *Runtime) Compile(
 	ctx context.Context,
 	qStr string,
-	input map[string]interface{},
+	input map[string]any,
 	unknowns []string,
 	disableInlining []string,
 	pretty, includeMetrics, includeInstrumentation bool,
@@ -69,12 +69,12 @@ func (r *Runtime) Compile(
 
 	pq, err := eval.Partial(ctx)
 	if err != nil {
-		switch err := err.(type) {
-		case ast.Errors:
-			return nil, errors.Wrap(err, "ast error")
-		default:
-			return nil, err
+		var astErr ast.Errors
+		if errors.As(err, &astErr) {
+			return nil, errors.Wrap(astErr, "ast error")
 		}
+
+		return nil, err
 	}
 
 	m.Timer(metrics.ServerHandler).Stop()
@@ -89,7 +89,7 @@ func (r *Runtime) Compile(
 		result.Explanation = r.getExplainResponse(explain, *buf, pretty)
 	}
 
-	var i interface{} = types.PartialEvaluationResultV1{
+	var i any = types.PartialEvaluationResultV1{
 		Queries: pq.Queries,
 		Support: pq.Support,
 	}

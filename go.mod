@@ -2,6 +2,8 @@ module github.com/aserto-dev/runtime
 
 go 1.23.7
 
+toolchain go1.24.2
+
 require (
 	github.com/aserto-dev/logger v0.0.7
 	github.com/fsnotify/fsnotify v1.8.0
@@ -9,7 +11,7 @@ require (
 	github.com/google/wire v0.6.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/mitchellh/copystructure v1.2.0
-	github.com/open-policy-agent/opa v1.3.0
+	github.com/open-policy-agent/opa v1.1.0
 	github.com/opencontainers/image-spec v1.1.1
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.33.0
@@ -22,6 +24,7 @@ require go.opentelemetry.io/otel/metric v1.35.0 // indirect
 require (
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20240806141605-e8a1dd7889d6 // indirect
 	github.com/Microsoft/hcsshim v0.12.3 // indirect
+	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/agnivade/levenshtein v1.2.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bytecodealliance/wasmtime-go/v3 v3.0.2 // indirect

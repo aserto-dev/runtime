@@ -43,7 +43,7 @@ func (c *QueryXCmd) Run() error {
 			Paths: []string{c.Policy},
 		},
 		Config: runtime.OPAConfig{
-			Plugins: map[string]interface{}{
+			Plugins: map[string]any{
 				decision_log.PluginName: decision_log.Config{
 					Enabled: true,
 				},
@@ -81,7 +81,7 @@ func (c *QueryXCmd) Run() error {
 		return errors.Wrap(err, "failed to create runtime")
 	}
 
-	input := map[string]interface{}{}
+	input := map[string]any{}
 	if err := json.Unmarshal([]byte(c.Input), &input); err != nil {
 		return errors.Wrap(err, "invalid input parameter")
 	}

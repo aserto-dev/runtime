@@ -20,7 +20,7 @@ var unsafeBuiltinsMap = map[string]struct{}{ast.HTTPSend.Name: {}}
 // Result contains the results of a Query execution.
 type Result struct {
 	Result      rego.ResultSet
-	Metrics     map[string]interface{}
+	Metrics     map[string]any
 	Explanation types.TraceV1
 	DecisionID  string
 }
@@ -30,7 +30,7 @@ type Result struct {
 func (r *Runtime) Query(
 	ctx context.Context,
 	qStr string,
-	input map[string]interface{},
+	input map[string]any,
 	pretty, includeMetrics, includeInstrumentation bool,
 	explain types.ExplainModeV1,
 ) (*Result, error) {
@@ -74,7 +74,7 @@ func (r *Runtime) execQuery(
 	txn storage.Transaction,
 	decisionID string,
 	parsedQuery ast.Body,
-	input map[string]interface{},
+	input map[string]any,
 	m metrics.Metrics,
 	explainMode types.ExplainModeV1,
 	includeMetrics, includeInstrumentation, pretty bool,

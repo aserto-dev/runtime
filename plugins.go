@@ -98,7 +98,6 @@ func (r *Runtime) pluginsLoaded() bool {
 	return true
 }
 
-// nolint TODO: This change would require upstream changes in OPA
 func (r *Runtime) bundlesStatusCallback(status bundle.Status) {
 	errs := status.Errors
 	if status.Code == bundleErrorCode {
@@ -116,27 +115,14 @@ func (r *Runtime) bundlesStatusCallback(status bundle.Status) {
 	r.setLatestStatus(r.status())
 }
 
-// nolint // hugeParam - the status is heavy 200 bytes, upstream changes might be welcomed
 func (r *Runtime) pluginStatusCallback(statusDetails map[string]*plugins.Status) {
 	for n, s := range statusDetails {
 		if n == bundlePluginName && !r.bundlesCallbackRegistered.Load() {
-			plugin := r.pluginsManager.Plugin(bundlePluginName)
-
-			if plugin != nil {
-				bundlePlugin := plugin.(*bundle.Plugin)
-				bundlePlugin.Register("aserto-error-recorder", r.bundlesStatusCallback)
-				r.bundlesCallbackRegistered.Store(true)
-			}
+			r.registerBundlesCallback()
 		}
 
 		if n == discoveryPluginName && !r.discoveryCallbackRegistered.Load() {
-			plugin := r.pluginsManager.Plugin(discoveryPluginName)
-
-			if plugin != nil {
-				discoveryPlugin := plugin.(*discovery.Discovery)
-				discoveryPlugin.RegisterListener("aserto-error-recorder", r.bundlesStatusCallback)
-				r.discoveryCallbackRegistered.Store(true)
-			}
+			r.registerDiscoveryCallback()
 		}
 
 		if s == nil {
@@ -163,4 +149,30 @@ func (r *Runtime) pluginStatusCallback(statusDetails map[string]*plugins.Status)
 	}
 
 	r.setLatestStatus(r.status())
+}
+
+func (r *Runtime) registerBundlesCallback() {
+	if plugin := r.pluginsManager.Plugin(bundlePluginName); plugin != nil {
+		bundlePlugin, ok := plugin.(*bundle.Plugin)
+		if !ok {
+			r.Logger.Error().Type("plugin", plugin).Msg("unexpected bundle plugin type")
+			return
+		}
+
+		bundlePlugin.Register("aserto-error-recorder", r.bundlesStatusCallback)
+		r.bundlesCallbackRegistered.Store(true)
+	}
+}
+
+func (r *Runtime) registerDiscoveryCallback() {
+	if plugin := r.pluginsManager.Plugin(discoveryPluginName); plugin != nil {
+		discoveryPlugin, ok := plugin.(*discovery.Discovery)
+		if !ok {
+			r.Logger.Error().Type("plugin", plugin).Msg("unexpected discovery plugin type")
+			return
+		}
+
+		discoveryPlugin.RegisterListener("aserto-error-recorder", r.bundlesStatusCallback)
+		r.discoveryCallbackRegistered.Store(true)
+	}
 }

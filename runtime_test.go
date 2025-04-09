@@ -68,8 +68,8 @@ func TestRemoteBundle(t *testing.T) {
 	assert := require.New(t)
 	r, cleanup, err := runtime.NewRuntime(context.Background(), &zerolog.Logger{}, &runtime.Config{
 		Config: runtime.OPAConfig{
-			Services: map[string]interface{}{
-				"acmecorp": map[string]interface{}{
+			Services: map[string]any{
+				"acmecorp": map[string]any{
 					"url":                             "https://ghcr.io",
 					"response_header_timeout_seconds": 5,
 					"type":                            "oci",

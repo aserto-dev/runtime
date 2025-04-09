@@ -5,7 +5,7 @@ import (
 
 	"github.com/aserto-dev/logger"
 	"github.com/rs/zerolog"
-	"github.com/sirupsen/logrus" // nolint // we're only using logrus to make sure any packages using it still end up to zerolog
+	"github.com/sirupsen/logrus"
 )
 
 func NewLogger(logOutput logger.Writer, errorOutput logger.ErrWriter, cfg *logger.Config) (*zerolog.Logger, error) {
