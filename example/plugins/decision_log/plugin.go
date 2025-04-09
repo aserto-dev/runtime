@@ -2,16 +2,18 @@ package decision_log
 
 import (
 	"context"
-	"errors"
 	"io"
 	"os"
 	"time"
 
 	"github.com/open-policy-agent/opa/v1/plugins"
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
 )
 
 const PluginName = "best_decision_log"
+
+var errLookup = errors.New("lookup error")
 
 type Config struct {
 	Enabled bool `json:"enabled"`
@@ -70,11 +72,13 @@ func (dl *DecisionLogger) Log(ctx context.Context, event *Event) error {
 func Lookup(m *plugins.Manager) (*DecisionLogger, error) {
 	p := m.Plugin(PluginName)
 	if p == nil {
-		return nil, errors.New("can't find decision logger")
+		return nil, errors.Wrap(errLookup, "can't find decision logger")
 	}
+
 	dl, ok := p.(*DecisionLogger)
 	if !ok {
-		return nil, errors.New("decision logger is not a *DecisionLogger")
+		return nil, errors.Wrap(errLookup, "decision logger is not a *DecisionLogger")
 	}
+
 	return dl, nil
 }

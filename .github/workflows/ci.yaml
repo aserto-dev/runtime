@@ -34,6 +34,13 @@ jobs:
           version: ${{ env.GO_LANGCI_LINT_VERSION }}
           args: --timeout=10m
       -
+        name: Lint example
+        uses: golangci/golangci-lint-action@v7
+        with:
+          version: ${{ env.GO_LANGCI_LINT_VERSION }}
+          args: --timeout=10m
+          working-directory: example
+      -
         name: Test Setup
         uses: gertd/action-gotestsum@v3.0.0
         with:

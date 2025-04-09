@@ -18,25 +18,31 @@ func (c *SigCmd) Run() error {
 	ctx, logger := setupLoggerAndContext(c.Verbosity)
 
 	r, cleanup, err := runtime.NewRuntime(ctx, logger, &runtime.Config{},
-		runtime.WithBuiltin1(&rego.Function{
-			Name:    "hello",
-			Memoize: false,
-			Decl:    types.NewFunction(types.Args(types.S), types.S),
-		}, func(bctx rego.BuiltinContext, name *ast.Term) (*ast.Term, error) {
-			strName := ""
-			err := ast.As(name.Value, &strName)
-			if err != nil {
-				return nil, errors.Wrap(err, "name parameter is not a string")
-			}
+		runtime.WithBuiltin1(
+			&rego.Function{
+				Name:    "hello",
+				Memoize: false,
+				Decl:    types.NewFunction(types.Args(types.S), types.S),
+			},
+			func(bctx rego.BuiltinContext, name *ast.Term) (*ast.Term, error) {
+				strName := ""
 
-			if strName == "there" {
-				return ast.StringTerm("general kenobi"), nil
-			}
-			return nil, nil
-		}))
+				if err := ast.As(name.Value, &strName); err != nil {
+					return nil, errors.Wrap(err, "name parameter is not a string")
+				}
+
+				if strName == "there" {
+					return ast.StringTerm("general kenobi"), nil
+				}
+
+				return &ast.Term{}, nil
+			},
+		),
+	)
 	if err != nil {
 		return errors.Wrap(err, "failed to create runtime")
 	}
+
 	defer cleanup()
 
 	def, err := r.BuiltinRequirements()

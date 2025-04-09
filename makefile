@@ -48,6 +48,7 @@ lint: gover
 	@${EXT_BIN_DIR}/golangci-lint config path
 	@${EXT_BIN_DIR}/golangci-lint config verify
 	@${EXT_BIN_DIR}/golangci-lint run --config ${PWD}/.golangci.yaml
+	@${EXT_BIN_DIR}/golangci-lint run example/... --config ${PWD}/.golangci.yaml
 
 # github.com/aserto-dev/topaz/pkg/app/tests/$PKGS
 .PHONY: test

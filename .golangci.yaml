@@ -18,6 +18,7 @@ linters:
     - revive
     - thelper
     - varnamelen
+    - tagalign
     - testableexamples
     - wrapcheck
 
@@ -53,6 +54,12 @@ linters:
         ignored-fields:
           - BuiltinDyn
           - Version
+
+  exclusions:
+    rules:
+      - path: example/\w+\.go
+        linters:
+          - forbidigo
 
 formatters:
   enable:
