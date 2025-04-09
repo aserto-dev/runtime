@@ -3,7 +3,7 @@ package decision_log
 import (
 	"bytes"
 
-	"github.com/mitchellh/mapstructure"
+	"github.com/go-viper/mapstructure/v2"
 	"github.com/open-policy-agent/opa/v1/plugins"
 	"github.com/open-policy-agent/opa/v1/util"
 	"github.com/pkg/errors"
@@ -16,12 +16,12 @@ func NewPluginFactory() PluginFactory {
 	return PluginFactory{}
 }
 
-func (PluginFactory) New(m *plugins.Manager, config interface{}) plugins.Plugin {
-	cfg := config.(*Config)
+func (PluginFactory) New(m *plugins.Manager, config any) plugins.Plugin { //nolint:ireturn
+	cfg, _ := config.(*Config)
 	return newDecisionLogger(cfg, m)
 }
 
-func (PluginFactory) Validate(m *plugins.Manager, config []byte) (interface{}, error) {
+func (PluginFactory) Validate(m *plugins.Manager, config []byte) (any, error) { //nolint:ireturn
 	parsedConfig := Config{}
 	v := viper.New()
 	v.SetConfigType("json")

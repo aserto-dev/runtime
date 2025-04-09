@@ -2,9 +2,11 @@ module github.com/aserto-dev/runtime
 
 go 1.23.7
 
+toolchain go1.24.2
+
 require (
-	github.com/aserto-dev/logger v0.0.7
-	github.com/fsnotify/fsnotify v1.8.0
+	github.com/aserto-dev/logger v0.0.9
+	github.com/fsnotify/fsnotify v1.9.0
 	github.com/google/uuid v1.6.0
 	github.com/google/wire v0.6.0
 	github.com/hashicorp/go-multierror v1.1.1
@@ -12,7 +14,7 @@ require (
 	github.com/open-policy-agent/opa v1.3.0
 	github.com/opencontainers/image-spec v1.1.1
 	github.com/pkg/errors v0.9.1
-	github.com/rs/zerolog v1.33.0
+	github.com/rs/zerolog v1.34.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.10.0
 )

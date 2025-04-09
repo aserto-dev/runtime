@@ -132,6 +132,11 @@ func (r *Runtime) processWatcherUpdate(ctx context.Context, paths []string, remo
 	})
 }
 
+const (
+	bundleRootOffset = 3
+	rootindexOffset  = 2
+)
+
 func (r *Runtime) deactivate(ctx context.Context) error {
 	err := storage.Txn(ctx, r.storage, storage.WriteParams, func(txn storage.Transaction) error {
 		deactivateMap := make(map[string]struct{})
@@ -141,30 +146,30 @@ func (r *Runtime) deactivate(ctx context.Context) error {
 			return err
 		}
 
-		if len(policies) > 0 {
-			path := strings.Split(policies[0], "/")
-			rootIndex := len(path) - 3 // default bundle root.
-
-			// bundle root detection for build images.
-			for i := range path {
-				if path[i] == "sha256" {
-					rootIndex = i + 2
-					break
-				}
-			}
-
-			root := strings.Join(path[:rootIndex], "/")
-			deactivateMap[root] = struct{}{}
-
-			return bundle.Deactivate(&bundle.DeactivateOpts{
-				Ctx:         ctx,
-				Store:       r.storage,
-				Txn:         txn,
-				BundleNames: deactivateMap,
-			})
+		if len(policies) == 0 {
+			return nil
 		}
 
-		return nil
+		path := strings.Split(policies[0], "/")
+		rootIndex := len(path) - bundleRootOffset // default bundle root.
+
+		// bundle root detection for build images.
+		for i := range path {
+			if path[i] == "sha256" {
+				rootIndex = i + rootindexOffset
+				break
+			}
+		}
+
+		root := strings.Join(path[:rootIndex], "/")
+		deactivateMap[root] = struct{}{}
+
+		return bundle.Deactivate(&bundle.DeactivateOpts{
+			Ctx:         ctx,
+			Store:       r.storage,
+			Txn:         txn,
+			BundleNames: deactivateMap,
+		})
 	})
 
 	return err
@@ -243,7 +248,7 @@ func writeVersion(ctx context.Context, store storage.Store, txn storage.Transact
 		return err
 	}
 
-	if err := store.Write(ctx, txn, storage.AddOp, versionPath, map[string]interface{}{
+	if err := store.Write(ctx, txn, storage.AddOp, versionPath, map[string]any{
 		"version":         version.Version,
 		"build_commit":    version.Vcs,
 		"build_timestamp": version.Timestamp,

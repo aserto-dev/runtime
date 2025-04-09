@@ -9,7 +9,7 @@ import (
 
 type OpaLogger struct {
 	logger    *zerolog.Logger
-	fields    map[string]interface{}
+	fields    map[string]any
 	levelLock sync.Mutex
 }
 
@@ -19,26 +19,26 @@ func NewOpaLogger(logger *zerolog.Logger) *OpaLogger {
 	return &OpaLogger{logger: logger}
 }
 
-func (l *OpaLogger) Debug(fmt string, a ...interface{}) {
+func (l *OpaLogger) Debug(fmt string, a ...any) {
 	l.logger.Debug().Msgf(fmt, a...)
 }
 
-func (l *OpaLogger) Info(fmt string, a ...interface{}) {
+func (l *OpaLogger) Info(fmt string, a ...any) {
 	l.logger.Info().Msgf(fmt, a...)
 }
 
-func (l *OpaLogger) Error(fmt string, a ...interface{}) {
+func (l *OpaLogger) Error(fmt string, a ...any) {
 	l.logger.Error().Msgf(fmt, a...)
 }
 
-func (l *OpaLogger) Warn(fmt string, a ...interface{}) {
+func (l *OpaLogger) Warn(fmt string, a ...any) {
 	l.logger.Warn().Msgf(fmt, a...)
 }
 
-func (l *OpaLogger) WithFields(fields map[string]interface{}) logging.Logger {
+func (l *OpaLogger) WithFields(fields map[string]any) logging.Logger {
 	newLogger := l.logger.With().Fields(fields).Logger()
 	logger := NewOpaLogger(&newLogger)
-	logger.fields = make(map[string]interface{})
+	logger.fields = make(map[string]any)
 
 	for k, v := range l.fields {
 		logger.fields[k] = v
@@ -51,7 +51,7 @@ func (l *OpaLogger) WithFields(fields map[string]interface{}) logging.Logger {
 	return logger
 }
 
-func (l *OpaLogger) GetFields() map[string]interface{} {
+func (l *OpaLogger) GetFields() map[string]any {
 	return l.fields
 }
 

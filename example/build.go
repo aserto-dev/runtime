@@ -1,12 +1,8 @@
 package main
 
 import (
-	"os"
-
 	runtime "github.com/aserto-dev/runtime"
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog"
-	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 )
 
 type BuildCmd struct {
@@ -16,25 +12,13 @@ type BuildCmd struct {
 }
 
 func (c *BuildCmd) Run() error {
-	ctx := signals.SetupSignalHandler()
-	logger := zerolog.New(os.Stdout)
+	ctx, logger := setupLoggerAndContext(c.Verbosity)
 
-	switch c.Verbosity {
-	case 0:
-		logger = logger.Level(zerolog.ErrorLevel)
-	case 1:
-		logger = logger.Level(zerolog.InfoLevel)
-	case 2:
-		logger = logger.Level(zerolog.DebugLevel)
-	default:
-		logger = logger.Level(zerolog.TraceLevel)
-	}
-
-	r, cleanup, err := runtime.NewRuntime(ctx, &logger, &runtime.Config{})
-
+	r, cleanup, err := runtime.NewRuntime(ctx, logger, &runtime.Config{})
 	if err != nil {
 		return errors.Wrap(err, "failed to create runtime")
 	}
+
 	defer cleanup()
 
 	return r.Build(&runtime.BuildParams{

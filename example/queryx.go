@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"time"
 
 	runtime "github.com/aserto-dev/runtime"
@@ -12,9 +11,9 @@ import (
 	"github.com/open-policy-agent/opa/v1/rego"
 	"github.com/open-policy-agent/opa/v1/types"
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog"
-	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 )
+
+const pluginReadyTimeout = 5 * time.Second
 
 type QueryXCmd struct {
 	Policy    string `arg:"" short:"b" type:"path"    help:"Path to the policy bundle."        default:"./bundle.tar.gz"`
@@ -24,26 +23,14 @@ type QueryXCmd struct {
 }
 
 func (c *QueryXCmd) Run() error {
-	ctx := signals.SetupSignalHandler()
-	logger := zerolog.New(os.Stdout)
+	ctx, logger := setupLoggerAndContext(c.Verbosity)
 
-	switch c.Verbosity {
-	case 0:
-		logger = logger.Level(zerolog.ErrorLevel)
-	case 1:
-		logger = logger.Level(zerolog.InfoLevel)
-	case 2:
-		logger = logger.Level(zerolog.DebugLevel)
-	default:
-		logger = logger.Level(zerolog.TraceLevel)
-	}
-
-	r, cleanup, err := runtime.NewRuntime(ctx, &logger, &runtime.Config{
+	r, cleanup, err := runtime.NewRuntime(ctx, logger, &runtime.Config{
 		LocalBundles: runtime.LocalBundlesConfig{
 			Paths: []string{c.Policy},
 		},
 		Config: runtime.OPAConfig{
-			Plugins: map[string]interface{}{
+			Plugins: map[string]any{
 				decision_log.PluginName: decision_log.Config{
 					Enabled: true,
 				},
@@ -51,22 +38,26 @@ func (c *QueryXCmd) Run() error {
 		},
 	},
 		runtime.WithPlugin(decision_log.PluginName, decision_log.NewPluginFactory()),
-		runtime.WithBuiltin1(&rego.Function{
-			Name:    "hello",
-			Memoize: false,
-			Decl:    types.NewFunction(types.Args(types.S), types.S),
-		}, func(bctx rego.BuiltinContext, name *ast.Term) (*ast.Term, error) {
-			strName := ""
-			err := ast.As(name.Value, &strName)
-			if err != nil {
-				return nil, errors.Wrap(err, "name parameter is not a string")
-			}
+		runtime.WithBuiltin1(
+			&rego.Function{
+				Name:    "hello",
+				Memoize: false,
+				Decl:    types.NewFunction(types.Args(types.S), types.S),
+			},
+			func(bctx rego.BuiltinContext, name *ast.Term) (*ast.Term, error) {
+				strName := ""
 
-			if strName == "there" {
-				return ast.StringTerm("general kenobi"), nil
-			}
-			return nil, nil
-		}),
+				if err := ast.As(name.Value, &strName); err != nil {
+					return nil, errors.Wrap(err, "name parameter is not a string")
+				}
+
+				if strName == "there" {
+					return ast.StringTerm("general kenobi"), nil
+				}
+
+				return &ast.Term{}, nil
+			},
+		),
 	)
 	if err != nil {
 		return errors.Wrap(err, "failed to create runtime")
@@ -77,11 +68,11 @@ func (c *QueryXCmd) Run() error {
 		return errors.Wrap(err, "failed to start plugin manager")
 	}
 
-	if err := r.WaitForPlugins(ctx, time.Second*5); err != nil {
+	if err := r.WaitForPlugins(ctx, pluginReadyTimeout); err != nil {
 		return errors.Wrap(err, "failed to create runtime")
 	}
 
-	input := map[string]interface{}{}
+	input := map[string]any{}
 	if err := json.Unmarshal([]byte(c.Input), &input); err != nil {
 		return errors.Wrap(err, "invalid input parameter")
 	}
@@ -109,5 +100,6 @@ func (c *QueryXCmd) Run() error {
 	}
 
 	fmt.Printf("%s\n", out)
+
 	return nil
 }

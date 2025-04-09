@@ -9,6 +9,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 )
 
+const (
+	verbosityError = 0
+	verbosityInfo  = 1
+	verbosityDebug = 2
+	verbosityTrace = 3
+)
+
 type Verdict struct {
 	Query  QueryCmd  `cmd:"" help:"Run a query against a policy."`
 	QueryX QueryXCmd `cmd:"" help:"Run a query against a policy using an extended runtime."`
@@ -23,16 +30,16 @@ func main() {
 	ctx.FatalIfErrorf(err)
 }
 
-func setupLoggerAndContext(verbosity int) (context.Context, *zerolog.Logger) {
+func setupLoggerAndContext(verbosity int) (context.Context, *zerolog.Logger) { //nolint:ireturn
 	ctx := signals.SetupSignalHandler()
 	logger := zerolog.New(os.Stdout)
 
 	switch verbosity {
-	case 0:
+	case verbosityError:
 		logger = logger.Level(zerolog.ErrorLevel)
-	case 1:
+	case verbosityInfo:
 		logger = logger.Level(zerolog.InfoLevel)
-	case 2:
+	case verbosityDebug:
 		logger = logger.Level(zerolog.DebugLevel)
 	default:
 		logger = logger.Level(zerolog.TraceLevel)

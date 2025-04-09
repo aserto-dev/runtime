@@ -3,12 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 
 	runtime "github.com/aserto-dev/runtime"
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog"
-	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 )
 
 type QueryCmd struct {
@@ -19,21 +16,9 @@ type QueryCmd struct {
 }
 
 func (c *QueryCmd) Run() error {
-	ctx := signals.SetupSignalHandler()
-	logger := zerolog.New(os.Stdout)
+	ctx, logger := setupLoggerAndContext(c.Verbosity)
 
-	switch c.Verbosity {
-	case 0:
-		logger = logger.Level(zerolog.ErrorLevel)
-	case 1:
-		logger = logger.Level(zerolog.InfoLevel)
-	case 2:
-		logger = logger.Level(zerolog.DebugLevel)
-	default:
-		logger = logger.Level(zerolog.TraceLevel)
-	}
-
-	r, cleanup, err := runtime.NewRuntime(ctx, &logger, &runtime.Config{
+	r, cleanup, err := runtime.NewRuntime(ctx, logger, &runtime.Config{
 		LocalBundles: runtime.LocalBundlesConfig{
 			Paths: []string{c.Policy},
 		},
@@ -43,7 +28,7 @@ func (c *QueryCmd) Run() error {
 	}
 	defer cleanup()
 
-	input := map[string]interface{}{}
+	input := map[string]any{}
 	if err := json.Unmarshal([]byte(c.Input), &input); err != nil {
 		return errors.Wrap(err, "invalid input parameter")
 	}
@@ -59,5 +44,6 @@ func (c *QueryCmd) Run() error {
 	}
 
 	fmt.Printf("%s\n", out)
+
 	return nil
 }

@@ -16,7 +16,10 @@ type AsertoStore struct {
 	backend storage.Store
 }
 
-var _ storage.Store = &AsertoStore{}
+var (
+	_ storage.Store   = (*AsertoStore)(nil)
+	_ storage.Trigger = (*AsertoStore)(nil)
+)
 
 // newAsertoStore creates a new AsertoStore.
 func NewAsertoStore(logger *zerolog.Logger, cfg *Config) *AsertoStore {
@@ -36,13 +39,13 @@ func (s *AsertoStore) NewTransaction(ctx context.Context, params ...storage.Tran
 }
 
 // Read is called to fetch a document referred to by path.
-func (s *AsertoStore) Read(ctx context.Context, txn storage.Transaction, path storage.Path) (interface{}, error) {
+func (s *AsertoStore) Read(ctx context.Context, txn storage.Transaction, path storage.Path) (any, error) { //nolint:ireturn
 	s.logger.Trace().Str("path", path.String()).Msg("read")
 	return s.backend.Read(ctx, txn, path)
 }
 
 // Write is called to modify a document referred to by path.
-func (s *AsertoStore) Write(ctx context.Context, txn storage.Transaction, op storage.PatchOp, path storage.Path, value interface{}) error {
+func (s *AsertoStore) Write(ctx context.Context, txn storage.Transaction, op storage.PatchOp, path storage.Path, value any) error {
 	s.logger.Trace().Str("path", path.String()).Msg("write")
 	return s.backend.Write(ctx, txn, op, path, value)
 }
