@@ -18,14 +18,13 @@ GO_VER             := 1.24
 SVU_VER            := 3.2.3
 GOTESTSUM_VER      := 1.12.1
 GOLANGCI-LINT_VER  := 2.0.2
-WIRE_VER           := 0.6.0
 
 RELEASE_TAG        := $$(${EXT_BIN_DIR}/svu current)
 
 .DEFAULT_GOAL      := build
 
 .PHONY: deps
-deps: info install-golangci-lint install-gotestsum install-wire install-svu
+deps: info install-golangci-lint install-gotestsum install-svu
 	@echo -e "$(ATTN_COLOR)==> $@ $(NO_COLOR)"
 
 .PHONY: gover
@@ -93,11 +92,6 @@ install-golangci-lint: ${EXT_TMP_DIR} ${EXT_BIN_DIR}
 	@mv ${EXT_TMP_DIR}/golangci-lint ${EXT_BIN_DIR}/golangci-lint
 	@chmod +x ${EXT_BIN_DIR}/golangci-lint
 	@${EXT_BIN_DIR}/golangci-lint --version
-
-.PHONY: install-wire
-install-wire: ${EXT_TMP_DIR} ${EXT_BIN_DIR}
-	@echo -e "$(ATTN_COLOR)==> $@ $(NO_COLOR)"
-	@GOBIN=${EXT_BIN_DIR} go install github.com/google/wire/cmd/wire@v${WIRE_VER}
 
 .PHONY: clean
 clean:

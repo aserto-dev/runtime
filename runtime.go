@@ -75,8 +75,8 @@ type State struct {
 
 var builtinsLock sync.Mutex
 
-// newOPARuntime creates a new OPA Runtime.
-func newOPARuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts ...Option) (*Runtime, func(), error) {
+// NewRuntime creates a new OPA Runtime.
+func NewRuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts ...Option) (*Runtime, error) {
 	newLogger := log.With().Str("component", "runtime").Str("instance-id", cfg.InstanceID).Logger()
 
 	runtime := &Runtime{
@@ -110,7 +110,7 @@ func newOPARuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts .
 	runtime.registerBuiltins()
 
 	if pm, err := runtime.newOPAPluginsManager(ctx); err != nil {
-		return nil, nil, errors.Wrap(err, "failed to setup plugin manager")
+		return nil, errors.Wrap(err, "failed to setup plugin manager")
 	} else {
 		runtime.pluginsManager = pm
 	}
@@ -118,7 +118,7 @@ func newOPARuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts .
 	runtime.InterQueryCache = cache.NewInterQueryCache(runtime.pluginsManager.InterQueryBuiltinCacheConfig())
 
 	if err := runtime.registerDiscovery(); err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	if cfg.LocalBundles.Watch {
@@ -126,17 +126,13 @@ func newOPARuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts .
 
 		if err := runtime.startWatcher(ctx, cfg.LocalBundles.Paths, runtime.onReloadLogger); err != nil {
 			log.Error().Err(err).Msg("unable to open watch")
-			return nil, nil, errors.Wrap(err, "unable to open watch for local bundles")
+			return nil, errors.Wrap(err, "unable to open watch for local bundles")
 		}
 	}
 
 	runtime.latestState.Store(runtime.status())
 
-	return runtime,
-		func() {
-			runtime.Stop(ctx)
-		},
-		nil
+	return runtime, nil
 }
 
 func (r *Runtime) registerBuiltins() {
