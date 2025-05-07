@@ -21,11 +21,16 @@ go get -u github.com/aserto-dev/runtime
 
 ```go
 // Create a runtime
-r, cleanup, err := runtime.NewRuntime(ctx, &logger, &runtime.Config{})
+r, err := runtime.NewRuntime(ctx, &logger, &runtime.Config{})
 if err != nil {
   return errors.Wrap(err, "failed to create runtime")
 }
-defer cleanup()
+
+if err := r.Start(ctx); err != nil {
+  return errors.Wrap(err, "failed to start runtime")
+}
+
+defer func() { r.Stop(ctx) }()
 
 // Use the runtime to build a bundle from the current directory
 return r.Build(runtime.BuildParams{

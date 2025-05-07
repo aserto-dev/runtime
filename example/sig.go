@@ -17,7 +17,7 @@ type SigCmd struct {
 func (c *SigCmd) Run() error {
 	ctx, logger := setupLoggerAndContext(c.Verbosity)
 
-	r, cleanup, err := runtime.NewRuntime(ctx, logger, &runtime.Config{},
+	r, err := runtime.NewRuntime(ctx, logger, &runtime.Config{},
 		runtime.WithBuiltin1(
 			&rego.Function{
 				Name:    "hello",
@@ -42,8 +42,6 @@ func (c *SigCmd) Run() error {
 	if err != nil {
 		return errors.Wrap(err, "failed to create runtime")
 	}
-
-	defer cleanup()
 
 	def, err := r.BuiltinRequirements()
 	if err != nil {

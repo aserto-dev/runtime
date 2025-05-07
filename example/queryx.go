@@ -25,7 +25,7 @@ type QueryXCmd struct {
 func (c *QueryXCmd) Run() error {
 	ctx, logger := setupLoggerAndContext(c.Verbosity)
 
-	r, cleanup, err := runtime.NewRuntime(ctx, logger, &runtime.Config{
+	r, err := runtime.NewRuntime(ctx, logger, &runtime.Config{
 		LocalBundles: runtime.LocalBundlesConfig{
 			Paths: []string{c.Policy},
 		},
@@ -62,7 +62,6 @@ func (c *QueryXCmd) Run() error {
 	if err != nil {
 		return errors.Wrap(err, "failed to create runtime")
 	}
-	defer cleanup()
 
 	if err := r.Start(ctx); err != nil {
 		return errors.Wrap(err, "failed to start plugin manager")
