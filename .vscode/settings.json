@@ -5,6 +5,7 @@
     "barkimedes",
     "bctx",
     "cerr",
+    "containerd",
     "Deps",
     "edsx",
     "fsnotify",
@@ -12,14 +13,18 @@
     "grpc",
     "inmem",
     "keyid",
+    "logrus",
     "mitchellh",
     "nolint",
+    "opencontainers",
     "pjson",
     "protobuf",
     "rego",
+    "sirupsen",
     "stretchr",
     "TLSCA",
-    "Wrapf"
+    "Wrapf",
+    "zerolog"
   ],
   "go.testFlags": ["-race"]
 }
