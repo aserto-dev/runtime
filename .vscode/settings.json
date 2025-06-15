@@ -6,6 +6,7 @@
     "bctx",
     "cerr",
     "containerd",
+    "copystructure",
     "Deps",
     "edsx",
     "fsnotify",
