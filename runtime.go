@@ -75,8 +75,8 @@ type State struct {
 
 var builtinsLock sync.Mutex
 
-// NewRuntime creates a new OPA Runtime.
-func NewRuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts ...Option) (*Runtime, error) {
+// New creates a new OPA Runtime.
+func New(ctx context.Context, log *zerolog.Logger, cfg *Config, opts ...Option) (*Runtime, error) {
 	newLogger := log.With().Str("component", "runtime").Str("instance-id", cfg.InstanceID).Logger()
 
 	runtime := &Runtime{
@@ -133,6 +133,17 @@ func NewRuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts ...O
 	runtime.latestState.Store(runtime.status())
 
 	return runtime, nil
+}
+
+// NewRuntime creates a new OPA Runtime.
+// Deprecated: Use New instead.
+func NewRuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts ...Option) (*Runtime, func(), error) {
+	r, err := New(ctx, log, cfg, opts...)
+	if err != nil {
+		return r, nil, err
+	}
+
+	return r, func() { r.Stop(ctx) }, err
 }
 
 func (r *Runtime) registerBuiltins() {

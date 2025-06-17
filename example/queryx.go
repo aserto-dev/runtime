@@ -25,7 +25,7 @@ type QueryXCmd struct {
 func (c *QueryXCmd) Run() error {
 	ctx, logger := setupLoggerAndContext(c.Verbosity)
 
-	r, err := runtime.NewRuntime(ctx, logger, &runtime.Config{
+	r, err := runtime.New(ctx, logger, &runtime.Config{
 		LocalBundles: runtime.LocalBundlesConfig{
 			Paths: []string{c.Policy},
 		},

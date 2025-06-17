@@ -17,7 +17,7 @@ func TestEmptyRuntime(t *testing.T) {
 	assert := require.New(t)
 	ctx := context.Background()
 
-	r, err := runtime.NewRuntime(ctx, &zerolog.Logger{}, &runtime.Config{})
+	r, err := runtime.New(ctx, &zerolog.Logger{}, &runtime.Config{})
 	assert.NoError(err)
 
 	// assert.NoError(
@@ -37,7 +37,7 @@ func TestLocalBundle(t *testing.T) {
 	assert := require.New(t)
 	ctx := context.Background()
 
-	r, err := runtime.NewRuntime(ctx, &zerolog.Logger{}, &runtime.Config{
+	r, err := runtime.New(ctx, &zerolog.Logger{}, &runtime.Config{
 		LocalBundles: runtime.LocalBundlesConfig{
 			Paths: []string{testutil.AssetSimpleBundle()},
 		},
@@ -64,7 +64,7 @@ func TestFailingLocalBundle(t *testing.T) {
 	assert := require.New(t)
 
 	// Act
-	_, err := runtime.NewRuntime(context.Background(), &zerolog.Logger{}, &runtime.Config{
+	_, err := runtime.New(context.Background(), &zerolog.Logger{}, &runtime.Config{
 		LocalBundles: runtime.LocalBundlesConfig{
 			Paths: []string{testutil.AssetBuiltinsBundle()},
 		},
@@ -79,7 +79,7 @@ func TestRemoteBundle(t *testing.T) {
 	assert := require.New(t)
 	ctx := context.Background()
 
-	r, err := runtime.NewRuntime(ctx, &zerolog.Logger{}, &runtime.Config{
+	r, err := runtime.New(ctx, &zerolog.Logger{}, &runtime.Config{
 		Config: runtime.OPAConfig{
 			Services: map[string]any{
 				"acmecorp": map[string]any{
