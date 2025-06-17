@@ -21,7 +21,7 @@ go get -u github.com/aserto-dev/runtime
 
 ```go
 // Create a runtime
-r, err := runtime.NewRuntime(ctx, &logger, &runtime.Config{})
+r, err := runtime.New(ctx, &logger, &runtime.Config{})
 if err != nil {
   return errors.Wrap(err, "failed to create runtime")
 }
