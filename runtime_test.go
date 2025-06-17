@@ -20,11 +20,6 @@ func TestEmptyRuntime(t *testing.T) {
 	r, err := runtime.New(ctx, &zerolog.Logger{}, &runtime.Config{})
 	assert.NoError(err)
 
-	// assert.NoError(
-	// 	r.Start(ctx),
-	// )
-	// t.Cleanup(func() { r.Stop(ctx) })
-
 	// Act
 	s := r.Status()
 
@@ -43,13 +38,6 @@ func TestLocalBundle(t *testing.T) {
 		},
 	})
 	assert.NoError(err)
-
-	// assert.NoError(
-	// 	r.Start(ctx),
-	// )
-	// t.Cleanup(func() { r.Stop(ctx) })
-	//
-	// Act
 
 	s := r.Status()
 
