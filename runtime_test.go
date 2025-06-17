@@ -8,17 +8,16 @@ import (
 	runtime "github.com/aserto-dev/runtime"
 	"github.com/aserto-dev/runtime/testutil"
 	"github.com/open-policy-agent/opa/v1/plugins/bundle"
-	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 )
 
 func TestEmptyRuntime(t *testing.T) {
 	// Arrange
 	assert := require.New(t)
-	r, cleanup, err := runtime.NewRuntime(context.Background(), &zerolog.Logger{}, &runtime.Config{})
-	assert.NoError(err)
+	ctx := context.Background()
 
-	defer cleanup()
+	r, err := runtime.New(ctx, &runtime.Config{})
+	assert.NoError(err)
 
 	// Act
 	s := r.Status()
@@ -30,16 +29,15 @@ func TestEmptyRuntime(t *testing.T) {
 func TestLocalBundle(t *testing.T) {
 	// Arrange
 	assert := require.New(t)
-	r, cleanup, err := runtime.NewRuntime(context.Background(), &zerolog.Logger{}, &runtime.Config{
+	ctx := context.Background()
+
+	r, err := runtime.New(ctx, &runtime.Config{
 		LocalBundles: runtime.LocalBundlesConfig{
 			Paths: []string{testutil.AssetSimpleBundle()},
 		},
 	})
 	assert.NoError(err)
 
-	defer cleanup()
-
-	// Act
 	s := r.Status()
 
 	// Assert
@@ -53,7 +51,7 @@ func TestFailingLocalBundle(t *testing.T) {
 	assert := require.New(t)
 
 	// Act
-	_, _, err := runtime.NewRuntime(context.Background(), &zerolog.Logger{}, &runtime.Config{
+	_, err := runtime.New(context.Background(), &runtime.Config{
 		LocalBundles: runtime.LocalBundlesConfig{
 			Paths: []string{testutil.AssetBuiltinsBundle()},
 		},
@@ -66,7 +64,9 @@ func TestFailingLocalBundle(t *testing.T) {
 func TestRemoteBundle(t *testing.T) {
 	// Arrange
 	assert := require.New(t)
-	r, cleanup, err := runtime.NewRuntime(context.Background(), &zerolog.Logger{}, &runtime.Config{
+	ctx := context.Background()
+
+	r, err := runtime.New(ctx, &runtime.Config{
 		Config: runtime.OPAConfig{
 			Services: map[string]any{
 				"acmecorp": map[string]any{
@@ -86,14 +86,15 @@ func TestRemoteBundle(t *testing.T) {
 
 	assert.NoError(err)
 
-	defer cleanup()
-
 	// Act
-	err = r.Start(context.Background())
-	assert.NoError(err)
+	assert.NoError(
+		r.Start(ctx),
+	)
+	t.Cleanup(func() { r.Stop(ctx) })
 
-	err = r.WaitForPlugins(context.Background(), time.Second*5)
-	assert.NoError(err)
+	assert.NoError(
+		r.WaitForPlugins(ctx, time.Second*5),
+	)
 
 	s := r.Status()
 

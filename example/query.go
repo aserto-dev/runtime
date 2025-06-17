@@ -16,9 +16,9 @@ type QueryCmd struct {
 }
 
 func (c *QueryCmd) Run() error {
-	ctx, logger := setupLoggerAndContext(c.Verbosity)
+	ctx := setupLoggerAndContext(c.Verbosity)
 
-	r, cleanup, err := runtime.NewRuntime(ctx, logger, &runtime.Config{
+	r, err := runtime.New(ctx, &runtime.Config{
 		LocalBundles: runtime.LocalBundlesConfig{
 			Paths: []string{c.Policy},
 		},
@@ -26,7 +26,6 @@ func (c *QueryCmd) Run() error {
 	if err != nil {
 		return errors.Wrap(err, "failed to create runtime")
 	}
-	defer cleanup()
 
 	input := map[string]any{}
 	if err := json.Unmarshal([]byte(c.Input), &input); err != nil {

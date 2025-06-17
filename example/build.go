@@ -12,14 +12,12 @@ type BuildCmd struct {
 }
 
 func (c *BuildCmd) Run() error {
-	ctx, logger := setupLoggerAndContext(c.Verbosity)
+	ctx := setupLoggerAndContext(c.Verbosity)
 
-	r, cleanup, err := runtime.NewRuntime(ctx, logger, &runtime.Config{})
+	r, err := runtime.New(ctx, &runtime.Config{})
 	if err != nil {
 		return errors.Wrap(err, "failed to create runtime")
 	}
-
-	defer cleanup()
 
 	return r.Build(&runtime.BuildParams{
 		OutputFile: c.Output,
