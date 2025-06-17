@@ -29,6 +29,7 @@ import (
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 // Runtime manages the OPA runtime (plugins, store and info data).
@@ -76,8 +77,8 @@ type State struct {
 var builtinsLock sync.Mutex
 
 // New creates a new OPA Runtime.
-func New(ctx context.Context, log *zerolog.Logger, cfg *Config, opts ...Option) (*Runtime, error) {
-	newLogger := log.With().Str("component", "runtime").Str("instance-id", cfg.InstanceID).Logger()
+func New(ctx context.Context, cfg *Config, opts ...Option) (*Runtime, error) {
+	newLogger := zerolog.Ctx(ctx).With().Str("component", "runtime").Str("instance-id", cfg.InstanceID).Logger()
 
 	runtime := &Runtime{
 		Logger: &newLogger,
@@ -138,7 +139,7 @@ func New(ctx context.Context, log *zerolog.Logger, cfg *Config, opts ...Option) 
 // NewRuntime creates a new OPA Runtime.
 // Deprecated: Use New instead.
 func NewRuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts ...Option) (*Runtime, func(), error) {
-	r, err := New(ctx, log, cfg, opts...)
+	r, err := New(log.WithContext(ctx), cfg, opts...)
 	if err != nil {
 		return r, nil, err
 	}

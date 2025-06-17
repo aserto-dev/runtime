@@ -30,7 +30,7 @@ func main() {
 	ctx.FatalIfErrorf(err)
 }
 
-func setupLoggerAndContext(verbosity int) (context.Context, *zerolog.Logger) { //nolint:ireturn
+func setupLoggerAndContext(verbosity int) context.Context { //nolint:ireturn
 	ctx := signals.SetupSignalHandler()
 	logger := zerolog.New(os.Stdout)
 
@@ -45,5 +45,5 @@ func setupLoggerAndContext(verbosity int) (context.Context, *zerolog.Logger) { /
 		logger = logger.Level(zerolog.TraceLevel)
 	}
 
-	return ctx, &logger
+	return logger.WithContext(ctx)
 }

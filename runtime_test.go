@@ -8,7 +8,6 @@ import (
 	runtime "github.com/aserto-dev/runtime"
 	"github.com/aserto-dev/runtime/testutil"
 	"github.com/open-policy-agent/opa/v1/plugins/bundle"
-	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,7 +16,7 @@ func TestEmptyRuntime(t *testing.T) {
 	assert := require.New(t)
 	ctx := context.Background()
 
-	r, err := runtime.New(ctx, &zerolog.Logger{}, &runtime.Config{})
+	r, err := runtime.New(ctx, &runtime.Config{})
 	assert.NoError(err)
 
 	// Act
@@ -32,7 +31,7 @@ func TestLocalBundle(t *testing.T) {
 	assert := require.New(t)
 	ctx := context.Background()
 
-	r, err := runtime.New(ctx, &zerolog.Logger{}, &runtime.Config{
+	r, err := runtime.New(ctx, &runtime.Config{
 		LocalBundles: runtime.LocalBundlesConfig{
 			Paths: []string{testutil.AssetSimpleBundle()},
 		},
@@ -52,7 +51,7 @@ func TestFailingLocalBundle(t *testing.T) {
 	assert := require.New(t)
 
 	// Act
-	_, err := runtime.New(context.Background(), &zerolog.Logger{}, &runtime.Config{
+	_, err := runtime.New(context.Background(), &runtime.Config{
 		LocalBundles: runtime.LocalBundlesConfig{
 			Paths: []string{testutil.AssetBuiltinsBundle()},
 		},
@@ -67,7 +66,7 @@ func TestRemoteBundle(t *testing.T) {
 	assert := require.New(t)
 	ctx := context.Background()
 
-	r, err := runtime.New(ctx, &zerolog.Logger{}, &runtime.Config{
+	r, err := runtime.New(ctx, &runtime.Config{
 		Config: runtime.OPAConfig{
 			Services: map[string]any{
 				"acmecorp": map[string]any{

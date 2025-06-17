@@ -15,9 +15,9 @@ type SigCmd struct {
 }
 
 func (c *SigCmd) Run() error {
-	ctx, logger := setupLoggerAndContext(c.Verbosity)
+	ctx := setupLoggerAndContext(c.Verbosity)
 
-	r, err := runtime.New(ctx, logger, &runtime.Config{},
+	r, err := runtime.New(ctx, &runtime.Config{},
 		runtime.WithBuiltin1(
 			&rego.Function{
 				Name:    "hello",
