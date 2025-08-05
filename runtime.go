@@ -147,6 +147,76 @@ func NewRuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts ...O
 	return r, func() { r.Stop(ctx) }, err
 }
 
+func (r *Runtime) WithRegoV1() *Runtime {
+	r.regoVersion = ast.RegoV1
+	return r
+}
+
+// Start - triggers plugin manager to start all plugins.
+func (r *Runtime) Start(ctx context.Context) error {
+	return r.pluginsManager.Start(ctx)
+}
+
+// Stop - triggers plugin manager to stop all plugins.
+func (r *Runtime) Stop(ctx context.Context) {
+	r.pluginsManager.Stop(ctx) // stop plugins always.
+}
+
+func (r *Runtime) Status() *State {
+	return r.latestState.Load()
+}
+
+// GetPluginsManager returns the runtime plugin manager.
+func (r *Runtime) GetPluginsManager() *plugins.Manager {
+	return r.pluginsManager
+}
+
+func (r *Runtime) BuiltinRequirements() (json.RawMessage, error) {
+	defs := fakeBuiltinDefs{}
+
+	for f := range r.builtins1 {
+		defs.Builtin1 = append(defs.Builtin1, fakeBuiltin1{
+			Name: f.Name,
+			Decl: *f.Decl,
+		})
+	}
+
+	for f := range r.builtins2 {
+		defs.Builtin2 = append(defs.Builtin2, fakeBuiltin2{
+			Name: f.Name,
+			Decl: *f.Decl,
+		})
+	}
+
+	for f := range r.builtins3 {
+		defs.Builtin3 = append(defs.Builtin3, fakeBuiltin3{
+			Name: f.Name,
+			Decl: *f.Decl,
+		})
+	}
+
+	for f := range r.builtins4 {
+		defs.Builtin4 = append(defs.Builtin4, fakeBuiltin4{
+			Name: f.Name,
+			Decl: *f.Decl,
+		})
+	}
+
+	for f := range r.builtinsDyn {
+		defs.BuiltinDyn = append(defs.BuiltinDyn, fakeBuiltinDyn{
+			Name: f.Name,
+			Decl: *f.Decl,
+		})
+	}
+
+	jsonBytes, err := json.Marshal(defs)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal builtin signatures into JSON")
+	}
+
+	return jsonBytes, nil
+}
+
 func (r *Runtime) registerBuiltins() {
 	// We shouldn't register global builtins, these should be per runtime.
 	// In order for that to work, the plugin manager has to allow us to tell the compiler
@@ -217,56 +287,6 @@ func (r *Runtime) registerStatusPlugin(pluginNames []string) error {
 	r.pluginsManager.Register("status", statusPlugin)
 
 	return nil
-}
-
-func (r *Runtime) BuiltinRequirements() (json.RawMessage, error) {
-	defs := fakeBuiltinDefs{}
-
-	for f := range r.builtins1 {
-		defs.Builtin1 = append(defs.Builtin1, fakeBuiltin1{
-			Name: f.Name,
-			Decl: *f.Decl,
-		})
-	}
-
-	for f := range r.builtins2 {
-		defs.Builtin2 = append(defs.Builtin2, fakeBuiltin2{
-			Name: f.Name,
-			Decl: *f.Decl,
-		})
-	}
-
-	for f := range r.builtins3 {
-		defs.Builtin3 = append(defs.Builtin3, fakeBuiltin3{
-			Name: f.Name,
-			Decl: *f.Decl,
-		})
-	}
-
-	for f := range r.builtins4 {
-		defs.Builtin4 = append(defs.Builtin4, fakeBuiltin4{
-			Name: f.Name,
-			Decl: *f.Decl,
-		})
-	}
-
-	for f := range r.builtinsDyn {
-		defs.BuiltinDyn = append(defs.BuiltinDyn, fakeBuiltinDyn{
-			Name: f.Name,
-			Decl: *f.Decl,
-		})
-	}
-
-	jsonBytes, err := json.Marshal(defs)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal builtin signatures into JSON")
-	}
-
-	return jsonBytes, nil
-}
-
-func (r *Runtime) Status() *State {
-	return r.latestState.Load()
 }
 
 func (r *Runtime) setLatestStatus(status *State) {
@@ -470,21 +490,6 @@ func (r *Runtime) loadPaths(paths []string) (map[string]*bundle.Bundle, error) {
 	return result, nil
 }
 
-// Start - triggers plugin manager to start all plugins.
-func (r *Runtime) Start(ctx context.Context) error {
-	return r.pluginsManager.Start(ctx)
-}
-
-// Stop - triggers plugin manager to stop all plugins.
-func (r *Runtime) Stop(ctx context.Context) {
-	r.pluginsManager.Stop(ctx) // stop plugins always.
-}
-
-// GetPluginsManager returns the runtime plugin manager.
-func (r *Runtime) GetPluginsManager() *plugins.Manager {
-	return r.pluginsManager
-}
-
 func (r *Runtime) getPolicyTarballPath(policyImageRef string) (string, error) {
 	storeRoot, err := r.fileStoreRoot()
 	if err != nil {
@@ -587,9 +592,4 @@ func (r *Runtime) fileStoreRoot() (string, error) {
 	}
 
 	return r.Config.LocalBundles.FileStoreRoot, nil
-}
-
-func (r *Runtime) WithRegoV1() *Runtime {
-	r.regoVersion = ast.RegoV1
-	return r
 }

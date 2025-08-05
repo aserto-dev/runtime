@@ -1,7 +1,6 @@
 package runtime_test
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -14,7 +13,7 @@ import (
 func TestEmptyRuntime(t *testing.T) {
 	// Arrange
 	assert := require.New(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	r, err := runtime.New(ctx, &runtime.Config{})
 	assert.NoError(err)
@@ -29,7 +28,7 @@ func TestEmptyRuntime(t *testing.T) {
 func TestLocalBundle(t *testing.T) {
 	// Arrange
 	assert := require.New(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	r, err := runtime.New(ctx, &runtime.Config{
 		LocalBundles: runtime.LocalBundlesConfig{
@@ -51,7 +50,7 @@ func TestFailingLocalBundle(t *testing.T) {
 	assert := require.New(t)
 
 	// Act
-	_, err := runtime.New(context.Background(), &runtime.Config{
+	_, err := runtime.New(t.Context(), &runtime.Config{
 		LocalBundles: runtime.LocalBundlesConfig{
 			Paths: []string{testutil.AssetBuiltinsBundle()},
 		},
@@ -64,7 +63,7 @@ func TestFailingLocalBundle(t *testing.T) {
 func TestRemoteBundle(t *testing.T) {
 	// Arrange
 	assert := require.New(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	r, err := runtime.New(ctx, &runtime.Config{
 		Config: runtime.OPAConfig{
