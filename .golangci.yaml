@@ -14,6 +14,7 @@ linters:
     - exhaustruct
     - gochecknoglobals  # no configuration options
     - nlreturn  # redundant with wsl
+    - noinlineerr
     - paralleltest
     - revive
     - thelper
@@ -21,6 +22,7 @@ linters:
     - tagalign
     - testableexamples
     - wrapcheck
+    - wsl
 
   settings:
     cyclop:
@@ -54,6 +56,11 @@ linters:
         ignored-fields:
           - BuiltinDyn
           - Version
+
+    wsl_v5:
+      allow-first-in-block: true
+      allow-whole-block: false
+      branch-max-lines: 2 
 
   exclusions:
     rules:
