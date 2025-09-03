@@ -12,16 +12,16 @@ on:
   pull_request:
 
 env:
-  GO_VERSION: 1.24
+  GO_VERSION: 1.25
   GO_LANGCI_LINT_VERSION: v2.4.0
-  GO_TESTSUM_VERSION: 1.12.1
+  GO_TESTSUM_VERSION: 1.12.3
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       -
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       -
         name: Setup Go
         uses: actions/setup-go@v5
@@ -29,13 +29,13 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
       -
         name: Lint
-        uses: golangci/golangci-lint-action@v7
+        uses: golangci/golangci-lint-action@v8
         with:
           version: ${{ env.GO_LANGCI_LINT_VERSION }}
           args: --timeout=10m
       -
         name: Lint example
-        uses: golangci/golangci-lint-action@v7
+        uses: golangci/golangci-lint-action@v8
         with:
           version: ${{ env.GO_LANGCI_LINT_VERSION }}
           args: --timeout=10m

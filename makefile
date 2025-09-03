@@ -14,9 +14,9 @@ EXT_DIR            := ${PWD}/.ext
 EXT_BIN_DIR        := ${EXT_DIR}/bin
 EXT_TMP_DIR        := ${EXT_DIR}/tmp
 
-GO_VER             := 1.24
+GO_VER             := 1.25
 SVU_VER            := 3.2.3
-GOTESTSUM_VER      := 1.12.1
+GOTESTSUM_VER      := 1.12.3
 GOLANGCI-LINT_VER  := 2.4.0
 
 RELEASE_TAG        := $$(${EXT_BIN_DIR}/svu current)
