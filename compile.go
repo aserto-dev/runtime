@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Result contains the results of a Compile execution.
+// CompileResult contains the results of a Compile execution.
 type CompileResult struct {
 	Result      *any
 	Metrics     map[string]any
