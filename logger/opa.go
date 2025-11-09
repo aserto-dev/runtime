@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"maps"
 	"sync"
 
 	"github.com/open-policy-agent/opa/v1/logging"
@@ -40,13 +41,9 @@ func (l *OpaLogger) WithFields(fields map[string]any) logging.Logger {
 	logger := NewOpaLogger(&newLogger)
 	logger.fields = make(map[string]any)
 
-	for k, v := range l.fields {
-		logger.fields[k] = v
-	}
+	maps.Copy(logger.fields, l.fields)
 
-	for k, v := range fields {
-		logger.fields[k] = v
-	}
+	maps.Copy(logger.fields, fields)
 
 	return logger
 }

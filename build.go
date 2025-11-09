@@ -301,7 +301,7 @@ func (r *Runtime) generateAllFakeBuiltins(paths []string) error {
 		manifest := struct {
 			Metadata struct {
 				RequiredBuiltins *fakeBuiltinDefs `json:"required_builtins"`
-			} `json:"metadata,omitempty"`
+			} `json:"metadata"`
 		}{}
 
 		if err := json.Unmarshal(manifestBytes, &manifest); err != nil {

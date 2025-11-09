@@ -136,17 +136,6 @@ func New(ctx context.Context, cfg *Config, opts ...Option) (*Runtime, error) {
 	return runtime, nil
 }
 
-// NewRuntime creates a new OPA Runtime.
-// Deprecated: Use New instead.
-func NewRuntime(ctx context.Context, log *zerolog.Logger, cfg *Config, opts ...Option) (*Runtime, func(), error) {
-	r, err := New(log.WithContext(ctx), cfg, opts...)
-	if err != nil {
-		return r, nil, err
-	}
-
-	return r, func() { r.Stop(ctx) }, err
-}
-
 func (r *Runtime) WithRegoV1() *Runtime {
 	r.regoVersion = ast.RegoV1
 	return r
