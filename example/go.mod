@@ -1,6 +1,6 @@
 module github.com/aserto-dev/runtime/example
 
-go 1.25.5
+go 1.25
 
 replace github.com/aserto-dev/runtime => ../
 

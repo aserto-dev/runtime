@@ -1,8 +1,6 @@
 module github.com/aserto-dev/runtime
 
-go 1.24.11
-
-toolchain go1.25.5
+go 1.25
 
 require (
 	github.com/aserto-dev/logger v0.0.9
