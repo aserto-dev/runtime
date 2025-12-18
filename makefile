@@ -17,7 +17,7 @@ EXT_TMP_DIR        := ${EXT_DIR}/tmp
 GO_VER             := 1.25
 SVU_VER            := 3.3.0
 GOTESTSUM_VER      := 1.13.0
-GOLANGCI-LINT_VER  := 2.6.1
+GOLANGCI-LINT_VER  := 2.6.2
 
 RELEASE_TAG        := $$(${EXT_BIN_DIR}/svu current)
 

@@ -12,9 +12,9 @@ on:
   pull_request:
 
 env:
-  GO_VERSION: 1.25.4
-  GO_LANGCI_LINT_VERSION: v2.6.1
-  GO_TESTSUM_VERSION: 1.12.3
+  GO_VERSION: 1.25
+  GO_LANGCI_LINT_VERSION: v2.6.2
+  GO_TESTSUM_VERSION: 1.13.0
 
 jobs:
   test:

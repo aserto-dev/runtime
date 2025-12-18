@@ -27,5 +27,8 @@
     "Wrapf",
     "zerolog"
   ],
-  "go.testFlags": ["-race"]
+  "go.testFlags": [
+    "-race"
+  ],
+  "sarif-viewer.connectToGithubCodeScanning": "off"
 }
