@@ -6,9 +6,9 @@ replace github.com/aserto-dev/runtime => ../
 
 require (
 	github.com/alecthomas/kong v1.13.0
-	github.com/aserto-dev/runtime v1.11.1
+	github.com/aserto-dev/runtime v1.12.1
 	github.com/go-viper/mapstructure/v2 v2.4.0
-	github.com/open-policy-agent/opa v1.11.1
+	github.com/open-policy-agent/opa v1.12.1
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.34.0
 	github.com/spf13/viper v1.21.0
