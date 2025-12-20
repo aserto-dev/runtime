@@ -8,7 +8,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/mitchellh/copystructure v1.2.0
-	github.com/open-policy-agent/opa v1.11.1
+	github.com/open-policy-agent/opa v1.12.1
 	github.com/opencontainers/image-spec v1.1.1
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.34.0
