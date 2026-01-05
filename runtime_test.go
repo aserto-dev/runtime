@@ -6,6 +6,7 @@ import (
 
 	runtime "github.com/aserto-dev/runtime"
 	"github.com/aserto-dev/runtime/testutil"
+	"github.com/open-policy-agent/opa/v1/ast"
 	"github.com/open-policy-agent/opa/v1/plugins/bundle"
 	"github.com/stretchr/testify/require"
 )
@@ -81,7 +82,9 @@ func TestRemoteBundle(t *testing.T) {
 				},
 			},
 		},
-	})
+	},
+		runtime.WithRegoVersion(ast.RegoV0),
+	)
 
 	assert.NoError(err)
 

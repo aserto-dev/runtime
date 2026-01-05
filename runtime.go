@@ -95,7 +95,7 @@ func New(ctx context.Context, cfg *Config, opts ...Option) (*Runtime, error) {
 		pluginStates: &sync.Map{},
 		bundleStates: &sync.Map{},
 		plugins:      map[string]plugins.Factory{},
-		regoVersion:  ast.RegoV0,
+		regoVersion:  ast.RegoV1,
 	}
 
 	runtime.latestState.Store(&State{})
@@ -134,11 +134,6 @@ func New(ctx context.Context, cfg *Config, opts ...Option) (*Runtime, error) {
 	runtime.latestState.Store(runtime.status())
 
 	return runtime, nil
-}
-
-func (r *Runtime) WithRegoV1() *Runtime {
-	r.regoVersion = ast.RegoV1
-	return r
 }
 
 // Start - triggers plugin manager to start all plugins.
