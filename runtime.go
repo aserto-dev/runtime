@@ -18,6 +18,8 @@ import (
 	"github.com/open-policy-agent/opa/v1/loader"
 	"github.com/open-policy-agent/opa/v1/metrics"
 	"github.com/open-policy-agent/opa/v1/plugins"
+	rt "github.com/open-policy-agent/opa/v1/runtime"
+
 	bundleplugin "github.com/open-policy-agent/opa/v1/plugins/bundle"
 	"github.com/open-policy-agent/opa/v1/plugins/discovery"
 	opaStatus "github.com/open-policy-agent/opa/v1/plugins/status"
@@ -58,6 +60,8 @@ type Runtime struct {
 	storage     storage.Store
 	latestState atomic.Pointer[State]
 	regoVersion ast.RegoVersion
+
+	Params rt.Params
 }
 
 type BundleState struct {
@@ -95,7 +99,7 @@ func New(ctx context.Context, cfg *Config, opts ...Option) (*Runtime, error) {
 		pluginStates: &sync.Map{},
 		bundleStates: &sync.Map{},
 		plugins:      map[string]plugins.Factory{},
-		regoVersion:  ast.RegoV1,
+		regoVersion:  ast.RegoV0,
 	}
 
 	runtime.latestState.Store(&State{})
@@ -148,6 +152,14 @@ func (r *Runtime) Stop(ctx context.Context) {
 
 func (r *Runtime) Status() *State {
 	return r.latestState.Load()
+}
+
+func (r *Runtime) Store() storage.Store {
+	return r.storage
+}
+
+func (r *Runtime) RegoVersion() ast.RegoVersion {
+	return r.regoVersion
 }
 
 // GetPluginsManager returns the runtime plugin manager.

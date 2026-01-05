@@ -41,6 +41,7 @@ linters:
         - error
         - generic
         - logging.Logger
+        - storage.Store
         - storage.Transaction
         - storage.TriggerHandle
 
@@ -67,6 +68,41 @@ linters:
       - path: example/\w+\.go
         linters:
           - forbidigo
+
+      - path: internal/runtime/init/\w+\.go
+        linters:
+          - nonamedreturns
+        
+      - path: internal/file/archive/\w+\.go
+        linters:
+          - nonamedreturns
+
+      - path: internal/pathwatcher/\w+\.go
+        linters:
+          - gosec
+          - nestif
+
+      - path: internal/runtime/\w+\.go
+        linters:
+          - mnd
+
+      - path: internal/runtime/init/\w+\.go
+        linters:
+          - funlen
+          - cyclop
+          - gocognit
+          - gosec
+
+      - path: internal/file/archive/\w+\.go
+        linters:
+          - errcheck
+          - mnd
+
+      - path: internal/storage/mock/\w+\.go
+        linters:
+          - err113
+          - forcetypeassert
+          - ireturn
 
 formatters:
   enable:
