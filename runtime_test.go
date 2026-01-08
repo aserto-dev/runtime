@@ -6,6 +6,7 @@ import (
 
 	runtime "github.com/aserto-dev/runtime"
 	"github.com/aserto-dev/runtime/testutil"
+	"github.com/open-policy-agent/opa/v1/ast"
 	"github.com/open-policy-agent/opa/v1/plugins/bundle"
 	"github.com/stretchr/testify/require"
 )
@@ -60,7 +61,7 @@ func TestFailingLocalBundle(t *testing.T) {
 	assert.Error(err)
 }
 
-func TestRemoteBundle(t *testing.T) {
+func TestRemoteBundleV0(t *testing.T) {
 	// Arrange
 	assert := require.New(t)
 	ctx := t.Context()
@@ -81,7 +82,9 @@ func TestRemoteBundle(t *testing.T) {
 				},
 			},
 		},
-	})
+	},
+		runtime.WithRegoVersion(ast.RegoV0),
+	)
 
 	assert.NoError(err)
 
