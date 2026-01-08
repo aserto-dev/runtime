@@ -87,3 +87,9 @@ func WithImports(imp []string) Option {
 		r.imports = append(r.imports, imp...)
 	}
 }
+
+func WithRegoVersion(v ast.RegoVersion) Option {
+	return func(r *Runtime) {
+		r.regoVersion = v
+	}
+}
