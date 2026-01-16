@@ -1,4 +1,12 @@
 {
+  "go.useLanguageServer": true,
+  "gopls": {
+    "formatting.gofumpt": true
+  },
+  "go.testFlags": [
+    "-race"
+  ],
+  "sarif-viewer.connectToGithubCodeScanning": "off",
   "cSpell.words": [
     "Aserto",
     "authz",
@@ -26,9 +34,5 @@
     "TLSCA",
     "Wrapf",
     "zerolog"
-  ],
-  "go.testFlags": [
-    "-race"
-  ],
-  "sarif-viewer.connectToGithubCodeScanning": "off"
+  ]
 }
