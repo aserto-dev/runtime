@@ -14,10 +14,10 @@ EXT_DIR            := ${PWD}/.ext
 EXT_BIN_DIR        := ${EXT_DIR}/bin
 EXT_TMP_DIR        := ${EXT_DIR}/tmp
 
-GO_VER             := 1.25
+GO_VER             := 1.26
 SVU_VER            := 3.3.0
 GOTESTSUM_VER      := 1.13.0
-GOLANGCI-LINT_VER  := 2.6.2
+GOLANGCI-LINT_VER  := 2.10.1
 
 RELEASE_TAG        := $$(${EXT_BIN_DIR}/svu current)
 
@@ -44,6 +44,7 @@ generate:
 .PHONY: lint
 lint: gover
 	@echo -e "$(ATTN_COLOR)==> $@ $(NO_COLOR)"
+	@${EXT_BIN_DIR}/golangci-lint version
 	@${EXT_BIN_DIR}/golangci-lint config path
 	@${EXT_BIN_DIR}/golangci-lint config verify
 	@${EXT_BIN_DIR}/golangci-lint run --config ${PWD}/.golangci.yaml
