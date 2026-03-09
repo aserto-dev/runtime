@@ -31,13 +31,13 @@ jobs:
         name: Lint
         uses: golangci/golangci-lint-action@v9
         with:
-          version: ${{ env.GO_LANGCI_LINT_VERSION }}
+          version: "v${{ env.GO_LANGCI_LINT_VERSION }}"
           args: --timeout=10m
       -
         name: Lint example
         uses: golangci/golangci-lint-action@v9
         with:
-          version: ${{ env.GO_LANGCI_LINT_VERSION }}
+          version: "v${{ env.GO_LANGCI_LINT_VERSION }}"
           args: --timeout=10m
           working-directory: example
       -
