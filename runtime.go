@@ -32,8 +32,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-const DefaultRegoVersion = ast.RegoV1
-
 // Runtime manages the OPA runtime (plugins, store and info data).
 type Runtime struct {
 	Logger          *zerolog.Logger
@@ -97,7 +95,7 @@ func New(ctx context.Context, cfg *Config, opts ...Option) (*Runtime, error) {
 		pluginStates: &sync.Map{},
 		bundleStates: &sync.Map{},
 		plugins:      map[string]plugins.Factory{},
-		regoVersion:  DefaultRegoVersion,
+		regoVersion:  DefaultRegoVersion.ToAstRegoVersion(),
 	}
 
 	runtime.latestState.Store(&State{})
