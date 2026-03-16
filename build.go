@@ -74,8 +74,43 @@ const (
 	RegoV1
 )
 
+const (
+	regoUndefined string = "undefined"
+	regoV0        string = "rego.v0"
+	regoV0V1      string = "rego.v0v1"
+	regoV1        string = "rego.v1"
+)
+
 func (v RegoVersion) ToAstRegoVersion() ast.RegoVersion {
 	return ast.RegoVersionFromInt(int(v))
+}
+
+func (v RegoVersion) String() string {
+	switch v {
+	case RegoUndefined:
+		return regoUndefined
+	case RegoV0:
+		return regoV0
+	case RegoV0CompatV1:
+		return regoV0V1
+	case RegoV1:
+		return regoV1
+	default:
+		return regoUndefined
+	}
+}
+
+func RegoVersionFromString(v string) RegoVersion {
+	switch v {
+	case regoV0:
+		return RegoV0
+	case regoV0V1:
+		return RegoV0CompatV1
+	case regoV1:
+		return RegoV1
+	default:
+		return RegoV1
+	}
 }
 
 // BuildParams contains all parameters used for doing a build.
