@@ -12,7 +12,7 @@ on:
   pull_request:
 
 env:
-  GO_LANGCI_LINT_VERSION: 2.10.1
+  GO_LANGCI_LINT_VERSION: 2.11.4
   GO_TESTSUM_VERSION: 1.13.0
 
 jobs:
@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       -
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       -
         name: Setup Go
         uses: actions/setup-go@v6
