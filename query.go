@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/open-policy-agent/opa/v1/ast"
@@ -67,6 +68,18 @@ func (r *Runtime) ValidateQuery(query string) (ast.Body, error) {
 	}
 
 	return body, nil
+}
+
+func (r *Runtime) ValidateRule(rule string) (bool, error) {
+	ref, err := ast.ParseRef(rule)
+	if err != nil {
+		return false, fmt.Errorf("invalid ref: %w", err)
+	}
+
+	compiler := r.pluginsManager.GetCompiler()
+	rules := compiler.GetRules(ref)
+
+	return len(rules) > 0, nil
 }
 
 func (r *Runtime) execQuery(
