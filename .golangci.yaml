@@ -13,6 +13,7 @@ linters:
     - depguard
     - exhaustruct
     - gochecknoglobals  # no configuration options
+    - gomodguard # deprecated replaced by gomodguard_v2
     - nlreturn  # redundant with wsl
     - noinlineerr
     - paralleltest
