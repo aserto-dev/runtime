@@ -82,7 +82,18 @@ const (
 )
 
 func (v RegoVersion) ToAstRegoVersion() ast.RegoVersion {
-	return ast.RegoVersionFromInt(int(v))
+	switch v {
+	case RegoUndefined:
+		return ast.RegoUndefined
+	case RegoV0:
+		return ast.RegoV0
+	case RegoV0CompatV1:
+		return ast.RegoV0CompatV1
+	case RegoV1:
+		return ast.RegoV1
+	default:
+		return ast.RegoUndefined
+	}
 }
 
 func (v RegoVersion) String() string {
